@@ -65,7 +65,7 @@ void MyViewresult::OnDraw(CDC* pDC)
 	bool pic = false;
 	int nump = 0;
 #pragma region À×´ïµã»æÍ¼
-	if(Mymodfunc::GetInstance()->Getpiecenmod(layern,&x ,&y,nump))
+	if(Mymodfunc::GetInstance()->Getpiecenmodl(layern,&x ,&y,nump))
 	{
 		if(!isinlim(x,y))
 			pic = true;

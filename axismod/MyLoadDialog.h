@@ -1,6 +1,5 @@
 #pragma once
 #include "afxwin.h"
-#include "MySetting.h"
 
 // MyLoadDialog ¶Ô»°¿ò
 
@@ -28,5 +27,4 @@ public:
 	afx_msg void OnLbnSelchangeList1();
 	CListBox Bsetlist;
 	std::vector<CString> str_lines;
-	MySetting* pset;
 };

@@ -25,7 +25,9 @@ CaxismodApp::CaxismodApp()
 	// TODO: 在此处添加构造代码，
 	// 将所有重要的初始化放置在 InitInstance 中
 }
-
+CaxismodApp::~CaxismodApp()
+{
+}
 
 // 唯一的一个 CaxismodApp 对象
 

@@ -7,14 +7,10 @@
 #include "Mmsystem.h"
 #include "limdata.h"
 #include "MySaveDialog.h"
-#include "MySetting.h"
 #include "MyLoadDialog.h"
 #include <Exception>
 #pragma comment(lib,"Winmm.lib")
-
-
 IMPLEMENT_DYNCREATE(MyForm, CFormView)
-
 MyForm::MyForm()
 : CFormView(MyForm::IDD),
 timer0(NULL)
@@ -33,11 +29,9 @@ timer0(NULL)
 {
 	memset(trains,0,sizeof(trains));
 }
-
 MyForm::~MyForm()
 {
 }
-
 void MyForm::DoDataExchange(CDataExchange* pDX)
 {
 	CFormView::DoDataExchange(pDX);
@@ -56,7 +50,6 @@ void MyForm::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT9, logtext);
 	DDX_Control(pDX, IDC_EDIT9, mesedit);
 }
-
 BEGIN_MESSAGE_MAP(MyForm, CFormView)
 	ON_BN_CLICKED(IDC_BUTTON1, &MyForm::OnBnClickedButton1)
 	ON_WM_HSCROLL()
@@ -76,6 +69,7 @@ BEGIN_MESSAGE_MAP(MyForm, CFormView)
 	ON_MESSAGE(WM_MESSOUT, &MyForm::OnMessageOut)
 	ON_BN_CLICKED(IDC_BUTTON11, &MyForm::OnBnClickedButton11)
 	ON_BN_CLICKED(IDC_BUTTON12, &MyForm::OnBnClickedButton12)
+	ON_BN_CLICKED(IDC_BUTTON13, &MyForm::OnBnClickedButton13)
 END_MESSAGE_MAP()
 
 
@@ -94,19 +88,17 @@ void MyForm::Dump(CDumpContext& dc) const
 }
 #endif
 #endif //_DEBUG
-
-
 // MyForm 消息处理程序
 //导入雷达数据
 void MyForm::OnBnClickedButton1()//button 导入雷达数据
 {
-	CFileDialog diag(true,0,0,4|2,"雷达数据文件(*.lms)|*.lms");
+	CFileDialog diag(true,0,0,4|2,"雷达数据文件(*.lms)|*.lms|测试数据文件(*.dat)|*.dat||");
 	CString filename;
 	CString path;
+	int layers;
 	if(IDOK == diag.DoModal())
 	{
 		filename = diag.GetPathName();
-		path = diag.GetFolderPath();
 		this->UpdateData(true);
 		e_filename = filename;
 		this->UpdateData(false);
@@ -114,7 +106,7 @@ void MyForm::OnBnClickedButton1()//button 导入雷达数据
 		CString *pStr = new CString("正在加载雷达数据");
 		::PostMessage(this->m_hWnd,WM_MESSOUT,(WPARAM)pStr,NULL);
 
-		if(Mymodfunc::GetInstance()->readfile(filename,path))
+		if(Mymodfunc::GetInstance()->readfile(filename,layers))
 		{
 			CString *pStr = new CString("雷达数据加载成功");
 			::PostMessage(this->m_hWnd,WM_MESSOUT,(WPARAM)pStr,NULL);
@@ -127,11 +119,11 @@ void MyForm::OnBnClickedButton1()//button 导入雷达数据
 
 		::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,0,NULL);
 		::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,0,NULL);
-		layerslider.SetRange(0,Mymodfunc::GetInstance()->totallayer-1);
-		layerslider.SetPageSize(1);
+
+		layerslider.SetRange(0,layers-1);
+		layerslider.SetPageSize(10);
 	}
 }
-
 void MyForm::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	char tembuf[100];
@@ -151,7 +143,6 @@ void CALLBACK onTimeFunc(UINT wTimerID, UINT msg,DWORD dwUser,DWORD dwl,DWORD dw
 	::PostMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,pform->layerslider.GetPos(),NULL);
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,pform->layerslider.GetPos(),NULL);
 }
-
 //播放
 void MyForm::OnBnClickedButton2()
 {
@@ -162,7 +153,6 @@ void MyForm::OnBnClickedButton2()
 		timer0 = timeSetEvent(40,1,onTimeFunc,(DWORD_PTR)this,TIME_PERIODIC);
 	}
 }
-
 void MyForm::OnTimer(UINT_PTR nIDEvent)
 {
 	layerslider.SetPos(layerslider.GetPos()+1);
@@ -173,7 +163,6 @@ void MyForm::OnTimer(UINT_PTR nIDEvent)
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
 	CFormView::OnTimer(nIDEvent);
 }
-
 //停止播放
 void MyForm::OnBnClickedButton3()
 {
@@ -189,37 +178,22 @@ void MyForm::OnBnClickedButton3()
 void MyForm::OnBnClickedButton4()
 {
 	this->UpdateData();
-	//Mymodfunc::GetInstance()->firstmod(6649,2000,3320.5);
-	set.calipar[islr*3+0] = roadwid;
-	set.calipar[islr*3+1] = roadhight;
-	set.calipar[islr*3+2] = roaddis;
-	if(Mymodfunc::GetInstance()->firstmod(this->islr,this->roadhight,this->roadwid,this->roaddis,carst,caren))
+
+	ModPar par;
+	par.distan = roaddis;
+	par.height = roadhight;
+	par.width = roadwid;
+	par.carst = carst;
+	par.caren = caren;
+	par.islr = islr;
+
+	if(Mymodfunc::GetInstance()->firstmod(par))
 	{
 		::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 		::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
 	}
 	else
 		MessageBox("参数不合法！请检查后重新校正！");
-	//if(Mymodfunc::GetInstance()->islr == 0)
-	//{
-	//	if(Mymodfunc::GetInstance()->firstmod(5514,1502,1518,carst,caren))
-	//	{
-	//		::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
-	//		::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
-	//	}
-	//	else
-	//		MessageBox("参数不合法！请检查后重新校正！");
-	//}
-	//else
-	//{
-	//	if(Mymodfunc::GetInstance()->firstmod(5630,1502,1472,carst,caren))
-	//	{
-	//		::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
-	//		::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
-	//	}
-	//	else
-	//		MessageBox("参数不合法！请检查后重新校正！");
-	//}
 
 }
 void MyForm::OnDestroy()
@@ -235,25 +209,21 @@ void MyForm::OnDestroy()
 void MyForm::OnBnClickedButton5()
 {
 	UpdateData(true);
-	Mymodfunc::GetInstance()->seconmod(islr,carwidth,carhight,carst,caren);
-	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
-	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
+	if(!Mymodfunc::GetInstance()->seconmod(islr,carwidth,carhight,carst,caren))
+		MessageBox("请先进行一次标定");
 }
-
 void MyForm::OnBnClickedButton6()
 {
 	this->UpdateData(true);
 	carst = layerslider.GetPos();
 	this->UpdateData(false);
 }
-
 void MyForm::OnBnClickedButton7()
 {
 	this->UpdateData(true);
 	caren = layerslider.GetPos();
 	this->UpdateData(false);
 }
-
 void MyForm::OnBnClickedRadio1()
 {
 	this->UpdateData(true);
@@ -261,7 +231,6 @@ void MyForm::OnBnClickedRadio1()
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),1);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
 }
-
 void MyForm::OnBnClickedRadio2()
 {
 	this->UpdateData(true);
@@ -269,26 +238,24 @@ void MyForm::OnBnClickedRadio2()
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),2);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
 }
-
-
-
 void MyForm::OnInitialUpdate()
 {
 	CFormView::OnInitialUpdate();
 	Mymodfunc::GetInstance()->h_form = this->m_hWnd;
 	// TODO: 在此添加专用代码和/或调用基类
 }
-
 //切车
 void MyForm::OnBnClickedButton8()
 {
 	this->UpdateData(true);
 	if(--trainid<1)
 		trainid = 0;
-	this->carst = Mymodfunc::GetInstance()->stps[trainid];
-	this->caren = Mymodfunc::GetInstance()->stps[trainid] + Mymodfunc::GetInstance()->lens[trainid];
+	int *stp = Mymodfunc::GetInstance()->set.cpar.stpoint;
+	int *len = Mymodfunc::GetInstance()->set.cpar.length;
+	this->carst = stp[trainid];
+	this->caren = stp[trainid] + len[trainid];
 	this->UpdateData(false);
-	layerslider.SetPos(Mymodfunc::GetInstance()->stps[trainid]);
+	layerslider.SetPos(stp[trainid]);
 	char tembuf[100];
 	_itoa_s(layerslider.GetPos(),tembuf,100,10);
 	layernedit.SetWindowTextA(tembuf);
@@ -296,16 +263,19 @@ void MyForm::OnBnClickedButton8()
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
 	this->par_refresh();
 }
-
 void MyForm::OnBnClickedButton10()
 {
 	this->UpdateData(true);
-	if(++trainid>Mymodfunc::GetInstance()->cc-1)
-		trainid = Mymodfunc::GetInstance()->cc - 1;
-	this->carst = Mymodfunc::GetInstance()->stps[trainid];
-	this->caren = Mymodfunc::GetInstance()->stps[trainid] + Mymodfunc::GetInstance()->lens[trainid];
+	int numt = Mymodfunc::GetInstance()->set.cpar.num;
+	int *stp = Mymodfunc::GetInstance()->set.cpar.stpoint;
+	int *len = Mymodfunc::GetInstance()->set.cpar.length;
+
+	if(++trainid>numt-1)
+		trainid = numt - 1;
+	this->carst = stp[trainid];
+	this->caren = stp[trainid] + len[trainid];
 	this->UpdateData(false);
-	layerslider.SetPos(Mymodfunc::GetInstance()->stps[trainid]);
+	layerslider.SetPos(stp[trainid]);
 	char tembuf[100];
 	_itoa_s(layerslider.GetPos(),tembuf,100,10);
 	layernedit.SetWindowTextA(tembuf);
@@ -313,7 +283,6 @@ void MyForm::OnBnClickedButton10()
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
 	this->par_refresh();
 }
-
 ///打开车辆信息
 void MyForm::OnBnClickedButton9()
 {
@@ -338,6 +307,8 @@ void MyForm::OnBnClickedButton9()
 				{
 					temstr.push_back(line.Tokenize("\t",pos));
 				}
+				if(temstr.size()<8)
+					continue;
 				trains[num_train].id = atoi(temstr[7]);
 
 				for(int i = 0;i<(310-146);i++)
@@ -368,16 +339,14 @@ void MyForm::OnBnClickedButton9()
 	}
 	this->par_refresh();
 }
-
 // 刷新宽高数据
 void MyForm::par_refresh(void)
 {
 	this->UpdateData(true);
-	this->carhight = trains[trainid].height;
-	this->carwidth = trains[trainid].width;
+	this->carhight = (float)(trains[trainid].height);
+	this->carwidth = (float)(trains[trainid].width);
 	this->UpdateData(false);
 }
-
 LRESULT MyForm::OnMessageOut(WPARAM wParam,LPARAM lParam)
 {
 	CTime now = CTime::GetCurrentTime();
@@ -389,9 +358,7 @@ LRESULT MyForm::OnMessageOut(WPARAM wParam,LPARAM lParam)
 	this->UpdateData(false);
 	delete pstr;
 	return 0;
-
 }
-
 BOOL MyForm::UpdateData(BOOL bSaveAndValidate)
 {
 	BOOL r;
@@ -400,7 +367,6 @@ BOOL MyForm::UpdateData(BOOL bSaveAndValidate)
 	mesedit.LineScroll(mesedit.GetLineCount()); 
 	return r;
 }
-
 void MyForm::OnBnClickedButton11()
 {
 	MySaveDialog temDialog;
@@ -408,32 +374,21 @@ void MyForm::OnBnClickedButton11()
 	{
 		CString linename = temDialog.linetext;
 		this->UpdateData(true);
-		set.lradar[0] = Mymodfunc::GetInstance()->x_delta[0];
-		set.lradar[1] = Mymodfunc::GetInstance()->y_delta[0];
-		set.lradar[2] = Mymodfunc::GetInstance()->ang_delta[0];
-		set.lradar[3] = 0 ;
-		set.lradar[4] = Mymodfunc::GetInstance()->w1[0];
-		set.lradar[5] = Mymodfunc::GetInstance()->w2[0];
-
-		set.rradar[0] = Mymodfunc::GetInstance()->x_delta[1];
-		set.rradar[1] = Mymodfunc::GetInstance()->y_delta[1];
-		set.rradar[2] = Mymodfunc::GetInstance()->ang_delta[1];
-		set.rradar[3] = 0 ;
-		set.rradar[4] = Mymodfunc::GetInstance()->w1[1];
-		set.rradar[5] = Mymodfunc::GetInstance()->w2[1];
-		set.writesetting(linename);
+		Mymodfunc::GetInstance()->set.writesetting(linename);
 	};
 }
-
-
 void MyForm::OnBnClickedButton12()
 {
 	std::vector<CString> lines;
-	set.ReadLine(lines);
+	Mymodfunc::GetInstance()->set.ReadLine(lines);
 	MyLoadDialog dig;
-	dig.pset = &set;
 	dig.str_lines = lines;
 	if(IDOK == dig.DoModal())
 		::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
 
+}
+
+void MyForm::OnBnClickedButton13()
+{
+	Mymodfunc::GetInstance()->traincut();
 }

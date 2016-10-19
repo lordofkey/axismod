@@ -66,15 +66,17 @@ void MyView::OnDraw(CDC* pDC)
 	dcMem.Rectangle(Rstpoint.x,Rstpoint.y,Renpoint.x,Renpoint.y);
 	printf("roi1: x:%d y:%d ox:%f oy%f\n",Lstpoint.x,Lstpoint.y,trans.getox(Lstpoint.x),trans.getoy(Lstpoint.y));
 
-	Mymodfunc::GetInstance()->lroix_min = trans.getox(Lstpoint.x);
-	Mymodfunc::GetInstance()->lroix_max = trans.getox(Lenpoint.x);
-	Mymodfunc::GetInstance()->lroiy_min = trans.getoy(Lenpoint.y);
-	Mymodfunc::GetInstance()->lroiy_max = trans.getoy(Lstpoint.y);
 
-	Mymodfunc::GetInstance()->rroix_min = trans.getox(Rstpoint.x);
-	Mymodfunc::GetInstance()->rroix_max = trans.getox(Renpoint.x);
-	Mymodfunc::GetInstance()->rroiy_min = trans.getoy(Renpoint.y);
-	Mymodfunc::GetInstance()->rroiy_max = trans.getoy(Rstpoint.y);
+
+	Mymodfunc::GetInstance()->setleftrange(trans.getox(Lstpoint.x),
+										   trans.getoy(Lstpoint.y),
+                                     	   trans.getox(Lenpoint.x),
+										   trans.getoy(Lenpoint.y));
+	Mymodfunc::GetInstance()->setrightrange(trans.getox(Rstpoint.x),
+											trans.getoy(Rstpoint.y),
+											trans.getox(Renpoint.x),
+											trans.getoy(Renpoint.y));
+
 
 	CBrush pbrush = CBrush(RGB(255,0,0));
 	dcMem.SelectObject(&pbrush);
@@ -98,10 +100,7 @@ void MyView::OnDraw(CDC* pDC)
 	dcMem.DeleteDC();                                          //删除DC
 	bmp.DeleteObject();                                        //删除位图
 }
-
-
 // MyView 诊断
-
 #ifdef _DEBUG
 void MyView::AssertValid() const
 {
@@ -115,8 +114,6 @@ void MyView::Dump(CDumpContext& dc) const
 }
 #endif
 #endif //_DEBUG
-
-
 // MyView 消息处理程序
 LRESULT MyView::OnRefresh(WPARAM wParam, LPARAM lParam)  
 {

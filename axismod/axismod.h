@@ -17,7 +17,7 @@ class CaxismodApp : public CWinApp
 {
 public:
 	CaxismodApp();
-
+	~CaxismodApp();
 
 // ÖØÐ´
 public:

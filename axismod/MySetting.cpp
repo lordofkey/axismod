@@ -6,25 +6,43 @@
 
 #include "StdAfx.h"
 #include "MySetting.h"
+
+
 #define f2str(target) sprintf_s(buffer,100,"%.2f",target);
 #define i2str(target) sprintf_s(buffer,100,"%d",target);
 
 MySetting::MySetting(void)
 {
+
+	CString  strPathName;
+	GetModuleFileName(NULL,strPathName.GetBuffer(256),256);
+	strPathName.ReleaseBuffer(256);
+	int nPos  = strPathName.ReverseFind('\\');
+	strPathName = strPathName.Left(nPos + 1);
+	strPathName += "setting.xml";
+	szXmlFile = strPathName;
+
+	version = "1.0.0.160801";
+//	szXmlFile  = "setting.xml";
+	memset(&pLeft,0,sizeof(pLeft));
+	memset(&pRight,0,sizeof(pRight));
+	memset(&cpar,0,sizeof(cpar));
 	pDoc = NULL;
 	xmlRoot = NULL;
-	pProInstruction = NULL;
+	pProInstruction = NULL; 
 	pRootElement = NULL;
 	plineElement = NULL;
 	pcalitimeElement = NULL;
-	szXmlFile  = "setting.xml";
 
-	memset(calipar,0,sizeof(calipar));
-	memset(rradar,0,sizeof(rradar));
-	memset(lradar,0,sizeof(lradar));
 }
 MySetting::~MySetting(void)
 {
+	pDoc = NULL;
+	xmlRoot = NULL;
+	pProInstruction = NULL; 
+	pRootElement = NULL;
+	plineElement = NULL;
+	pcalitimeElement = NULL;
 }
 //输入 文件名
 //输入 是否初始化成功
@@ -57,6 +75,7 @@ bool MySetting::initialdom(void)
 	{
 		pRootElement = pDoc->GetdocumentElement();
 	}
+
 	return true;
 }
 //输入：线路名称
@@ -65,7 +84,7 @@ int MySetting::checkline(CString linename)
 {
 	long length = 0;
 	MSXML2::IXMLDOMNodeListPtr pNodeList = NULL;
-	MSXML2::IXMLDOMElementPtr pElement = NULL;
+	plineElement = NULL;
 	pNodeList = pDoc->getElementsByTagName((_bstr_t)"Line");
 	pNodeList->get_length(&length);
 	for(int i = 0;i < length; i++)
@@ -73,117 +92,55 @@ int MySetting::checkline(CString linename)
 		if(strcmp(pNodeList->Getitem(i)->Getattributes()->Getitem(0)->Gettext(),linename) == 0)
 		{
 			printf("发现重名线路:%s\n",pNodeList->Getitem(i)->Getattributes()->Getitem(0)->Gettext(),linename);
-			pElement = pNodeList->Getitem(i);
+			plineElement = pNodeList->Getitem(i);
 			break;
 		}
 	}
-	if(pElement == NULL)
+	if(plineElement == NULL)
 	{
-		pElement = pDoc->createElement((_bstr_t)"Line");
-		pElement->setAttribute((_bstr_t)"name",linename.GetBuffer());
-		pRootElement->appendChild(pElement);
+		plineElement = pDoc->createElement((_bstr_t)"Line");
+		plineElement->setAttribute((_bstr_t)"name",linename.GetBuffer());
+		pRootElement->appendChild(plineElement);
 	}
-	plineElement = pElement;
 	return 1;
 }
 //<lines><line><caltime>
-void MySetting::precali(void)
+void MySetting::checkcal(void)
 {
-	CTime now = CTime::GetCurrentTime();
-	MSXML2::IXMLDOMElementPtr pElement = NULL;
-	pElement = pDoc ->createElement("caltime");
-	pElement->setAttribute((_bstr_t)"time",now.Format("%Y-%m-%d %H:%M:%S: ").GetBuffer());
-	pElement->setAttribute((_bstr_t)"version",Mymodfunc::GetInstance()->version.GetBuffer());
-	pElement->setAttribute((_bstr_t)"source",Mymodfunc::GetInstance()->source.GetBuffer());
-	pcalitimeElement = pElement;
-	plineElement->appendChild(this->pcalitimeElement);
+	pcalitimeElement = pDoc ->createElement("caltime");
+	plineElement->appendChild(pcalitimeElement);
 }
-
+bool MySetting::checkcal(CString caltime)
+{
+	long length = 0;
+	MSXML2::IXMLDOMNodeListPtr pNodeList = NULL;
+	pcalitimeElement = NULL;
+	pNodeList = plineElement->getElementsByTagName((_bstr_t)"caltime");
+	pNodeList->get_length(&length);
+	for(int i = 0;i < length; i++)
+	{
+		pcalitimeElement = pNodeList->Getitem(i);
+		if(0 == strcmp((CString)(pcalitimeElement->getAttribute((_bstr_t)"time")),caltime))
+			break;
+	}
+	if(pcalitimeElement == NULL)
+		return false;
+	return true;
+}
 bool MySetting::writesetting(CString linename)
 {
-	MSXML2::IXMLDOMElementPtr pPar = NULL, prradar = NULL, plradar = NULL,pcut = NULL,pcar = NULL;
+
 	if(!initialdom())
 		return false;
-	this->checkline(linename);
-	this->precali();
-	char buffer[100];
-
-
-	pPar = pDoc->createElement((_bstr_t)"cali_par");
-	f2str(calipar[3])
-	pPar->setAttribute((_bstr_t)"roadwidth",buffer);
-	f2str(calipar[4])
-	pPar->setAttribute((_bstr_t)"radarheight",buffer);
-	f2str(calipar[5])
-	pPar->setAttribute((_bstr_t)"road_radar_dis",buffer);
-
-	prradar = pDoc->createElement("right_radar");
-	f2str(rradar[0])
-	prradar->setAttribute((_bstr_t)"delta_x",buffer);
-	f2str(rradar[1])
-	prradar->setAttribute((_bstr_t)"delta_y",buffer);
-	f2str(rradar[2]*57.2958)
-	prradar->setAttribute((_bstr_t)"delta_th",buffer);
-	f2str(rradar[3])
-	prradar->setAttribute((_bstr_t)"score",buffer);
-	f2str(rradar[4])
-	prradar->setAttribute((_bstr_t)"w1",buffer);
-	f2str(rradar[5])
-	prradar->setAttribute((_bstr_t)"w2",buffer);
-	prradar->appendChild(pPar);
-
-	pPar = pDoc->createElement((_bstr_t)"cali_par");
-	f2str(calipar[0])
-	pPar->setAttribute((_bstr_t)"roadwidth",buffer);
-	f2str(calipar[1])
-	pPar->setAttribute((_bstr_t)"radarheight",buffer);
-	f2str(calipar[2])
-	pPar->setAttribute((_bstr_t)"road_radar_dis",buffer);
-
-	plradar = pDoc->createElement("left_radar");
-	f2str(lradar[0])
-	plradar->setAttribute((_bstr_t)"delta_x",buffer);
-	f2str(lradar[1])
-	plradar->setAttribute((_bstr_t)"delta_y",buffer);
-	f2str(lradar[2]*57.2958)
-	plradar->setAttribute((_bstr_t)"delta_th",buffer);
-	f2str(lradar[3])
-	plradar->setAttribute((_bstr_t)"score",buffer);
-	f2str(lradar[4])
-	plradar->setAttribute((_bstr_t)"w1",buffer);
-	f2str(lradar[5])
-	plradar->setAttribute((_bstr_t)"w2",buffer);
-	plradar->appendChild(pPar);
-
-	pcut = pDoc->createElement("cut");
-	i2str(Mymodfunc::GetInstance()->cc);
-	pcut->setAttribute((_bstr_t)"number",buffer);
-	pcalitimeElement->appendChild(prradar);
-	pcalitimeElement->appendChild(plradar);
-	pcalitimeElement->appendChild(pcut);
-
-
-	for(int i = 0;i<Mymodfunc::GetInstance()->cc;i++)
-	{
-		pcar = pDoc->createElement("car");
-		i2str(Mymodfunc::GetInstance()->stps[i])
-		pcar->setAttribute((_bstr_t)"stpoint",buffer);
-		i2str(Mymodfunc::GetInstance()->lens[i])
-		pcar->setAttribute((_bstr_t)"length",buffer);
-		pcut->appendChild(pcar);
-	}
-
-	pDoc->save((_variant_t)szXmlFile);
-	return false;
+	checkline(linename);
+	checkcal();
+	update(true);
+	return true;
 }
-
-
 int MySetting::ReadLine(std::vector<CString> &str_lines)
 {
-	initialdom();
 	MSXML2::IXMLDOMNodeListPtr pNodeList = NULL;
-
-	this->initialdom();
+	initialdom();
 	long length = 0;
 	pNodeList = pDoc->getElementsByTagName((_bstr_t)"Line");
 	pNodeList->get_length(&length);
@@ -193,36 +150,16 @@ int MySetting::ReadLine(std::vector<CString> &str_lines)
 	}
 	return 0;
 }
-
-
-
-void MySetting::Loadsetting(CString linename,CString time,std::vector<CString>& parstr)
+bool MySetting::Loadsetting(CString linename,CString time)
 {
-	this->initialdom();
-	this->checkline(linename);
-	MSXML2::IXMLDOMNodeListPtr pNodeList = NULL;
-	MSXML2::IXMLDOMElementPtr pElement = NULL;
-	long length;
-	pNodeList = plineElement->getElementsByTagName((_bstr_t)"caltime");
-	pNodeList->get_length(&length);
-	for(int i = 0;i < length; i++)
-	{
-		CString tem = pNodeList->Getitem(i)->Getattributes()->getNamedItem((_bstr_t)"time")->Gettext();
-		if(0 == strcmp(tem,time))
-		{
-			pElement = pNodeList->Getitem(i);
-			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"left_radar")->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_x")->Gettext()));
-			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"left_radar")->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_y")->Gettext()));
-			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"left_radar")->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_th")->Gettext()));
-			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"right_radar") ->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_x")->Gettext()));
-			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"right_radar") ->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_y")->Gettext()));
-			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"right_radar") ->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_th")->Gettext()));
-			break;
-		}																							 
-	}
+	if(linename.IsEmpty()||time.IsEmpty())
+		return false;
+	initialdom();
+	checkline(linename);
+	checkcal(time);
+	update(false);
+	return true;
 }
-
-
 int MySetting::getsettings(CString linename, std::vector<CString>& sets)
 {
 	long length;
@@ -234,9 +171,109 @@ int MySetting::getsettings(CString linename, std::vector<CString>& sets)
 	pNodeList->get_length(&length);
 	for(int i = 0;i < length; i++)
 	{
-		CString tem = pNodeList->Getitem(i)->Getattributes()->getNamedItem((_bstr_t)"time")->Gettext();
+		CString tem = ((MSXML2::IXMLDOMElementPtr)pNodeList->Getitem(i))->getAttribute((_bstr_t)"time");
 		sets.push_back(tem);
 	}
 	return 0;
 }
+bool MySetting::update(bool isout)//isout == true 时，保存到文件。 isout = false时，从文件读出
+{
+	MSXML2::IXMLDOMElementPtr pPar = NULL, prradar = NULL, plradar = NULL,pcut = NULL,pcar = NULL;
+#pragma region 保存
+	if(isout)
+	{
+		CTime now = CTime::GetCurrentTime();
+		pcalitimeElement->setAttribute((_bstr_t)"time",now.Format("%Y-%m-%d %H:%M:%S: ").GetBuffer());
+		pcalitimeElement->setAttribute((_bstr_t)"version",version.GetBuffer());
+		pcalitimeElement->setAttribute((_bstr_t)"source",fSource.GetBuffer());
 
+		char buffer[100];
+		pPar = pDoc->createElement((_bstr_t)"cali_par");
+		f2str(pRight.roadwidth)
+			pPar->setAttribute((_bstr_t)"roadwidth",buffer);
+		f2str(pRight.radarheight)
+			pPar->setAttribute((_bstr_t)"radarheight",buffer);
+		f2str(pRight.road_radar_dis)
+			pPar->setAttribute((_bstr_t)"road_radar_dis",buffer);
+		prradar = pDoc->createElement("right_radar");
+		f2str(pRight.delta_x)
+			prradar->setAttribute((_bstr_t)"delta_x",buffer);
+		f2str(pRight.delta_y)
+			prradar->setAttribute((_bstr_t)"delta_y",buffer);
+		f2str(pRight.delta_th*57.2958) //    180/pi
+			prradar->setAttribute((_bstr_t)"delta_th",buffer);
+		f2str(pRight.score)
+			prradar->setAttribute((_bstr_t)"score",buffer);
+		f2str(pRight.w1)
+			prradar->setAttribute((_bstr_t)"w1",buffer);
+		f2str(pRight.w2)
+			prradar->setAttribute((_bstr_t)"w2",buffer);
+		prradar->appendChild(pPar);
+
+
+		pPar = pDoc->createElement((_bstr_t)"cali_par");
+		f2str(pLeft.roadwidth)
+			pPar->setAttribute((_bstr_t)"roadwidth",buffer);
+		f2str(pLeft.radarheight)
+			pPar->setAttribute((_bstr_t)"radarheight",buffer);
+		f2str(pLeft.road_radar_dis)
+			pPar->setAttribute((_bstr_t)"road_radar_dis",buffer);
+
+		plradar = pDoc->createElement("left_radar");
+		f2str(pLeft.delta_x)
+			plradar->setAttribute((_bstr_t)"delta_x",buffer);
+		f2str(pLeft.delta_y)
+			plradar->setAttribute((_bstr_t)"delta_y",buffer);
+		f2str(pLeft.delta_th*57.2958)
+			plradar->setAttribute((_bstr_t)"delta_th",buffer);
+		f2str(pLeft.score)
+			plradar->setAttribute((_bstr_t)"score",buffer);
+		f2str(pLeft.w1)
+			plradar->setAttribute((_bstr_t)"w1",buffer);
+		f2str(pLeft.w2)
+			plradar->setAttribute((_bstr_t)"w2",buffer);
+		plradar->appendChild(pPar);
+
+		pcut = pDoc->createElement("cut");
+		i2str(cpar.num);
+		pcut->setAttribute((_bstr_t)"number",buffer);
+
+		pcalitimeElement->appendChild(prradar);
+		pcalitimeElement->appendChild(plradar);
+		pcalitimeElement->appendChild(pcut);
+		for(int i = 0;i<cpar.num;i++)
+		{
+			pcar = pDoc->createElement("car");
+			i2str(cpar.stpoint[i])
+			pcar->setAttribute((_bstr_t)"stpoint",buffer);
+			i2str(cpar.length[i])
+				pcar->setAttribute((_bstr_t)"length",buffer);
+			pcut->appendChild(pcar);
+		}
+		pDoc->save((_variant_t)szXmlFile);
+		return true;
+	}
+#pragma endregion 保存
+	else
+	{
+		prradar = pcalitimeElement->getElementsByTagName((_bstr_t)"right_radar")->Getitem(0);
+		plradar = pcalitimeElement->getElementsByTagName((_bstr_t)"left_radar")->Getitem(0);
+		CString tem;
+		if(prradar == NULL||plradar == NULL)
+			return false;
+		tem = prradar->getAttribute((_bstr_t)"delta_x");
+		pRight.delta_x = (float)atof(tem);
+		tem = prradar->getAttribute((_bstr_t)"delta_y");
+		pRight.delta_y = (float)atof(tem);
+		tem = prradar->getAttribute((_bstr_t)"delta_th");
+		pRight.delta_th = (float)atof(tem)/57.3f;
+
+		tem = plradar->getAttribute((_bstr_t)"delta_x");
+		pLeft.delta_x = (float)atof(tem);
+		tem = plradar->getAttribute((_bstr_t)"delta_y");
+		pLeft.delta_y = (float)atof(tem);
+		tem = plradar->getAttribute((_bstr_t)"delta_th");
+		pLeft.delta_th = (float)atof(tem)/57.3f;
+		return true;
+	}
+}

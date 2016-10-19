@@ -1,27 +1,50 @@
 #pragma once
 #import <msxml4.dll>
 using namespace MSXML2;
+
+struct TrainPar //标定参数
+{
+	float delta_x;
+	float delta_y;
+	float delta_th;
+	float w1;
+	float w2;
+	float score;
+	float road_radar_dis;
+	float radarheight;
+	float roadwidth;
+};
+struct CutPar //切车参数
+{
+	int num;
+	int stpoint[1000];
+	int length[1000];
+};
+
 class MySetting
 {
 public:
 	MySetting(void);
 	~MySetting(void);
 private:
-	char *szXmlFile;
+	CString szXmlFile;
+	CString version;
+public:
 	MSXML2::IXMLDOMDocumentPtr pDoc;
 	MSXML2::IXMLDOMElementPtr xmlRoot;
 	MSXML2::IXMLDOMProcessingInstructionPtr pProInstruction; 
 	MSXML2::IXMLDOMElementPtr pRootElement, plineElement, pcalitimeElement; 
-public:
+	TrainPar pLeft,pRight;
+	CString fSource;
+	CutPar cpar;
+
 	bool initialdom(void);
 	int checkline(CString linename);
-	void precali(void);
+	void checkcal(void);
+	bool checkcal(CString calname);
 	bool writesetting(CString linename);
-
-	float calipar[6]; // l 0-roadwidth, 1-radarheight, 2-road_radar_dis  r 0-roadwidth, 1-radarheight, 2-road_radar_dis
-	float rradar[6]; //0-delta_x, 1-delta_y, 2-delta_th, 3-score, 4-w1, 5-w2
-	float lradar[6]; //0-delta_x, 1-delta_y, 2-delta_th, 3-score, 4-w1, 5-w2
 	int ReadLine(std::vector<CString> &str_lines);
-	void Loadsetting(CString linename,CString time,std::vector<CString>& parstr);
+	bool Loadsetting(CString linename,CString time);
 	int getsettings(CString linename, std::vector<CString>& sets);
+	bool update(bool isout);
 };

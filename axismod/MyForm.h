@@ -1,7 +1,6 @@
 #pragma once
 #include "afxcmn.h"
 #include "afxwin.h"
-#include "mysetting.h"
 
 
 
@@ -79,5 +78,5 @@ public:
 	afx_msg void OnBnClickedButton11();
 	afx_msg void OnBnClickedButton12();
 	int islr;
-	MySetting set;
+	afx_msg void OnBnClickedButton13();
 };
