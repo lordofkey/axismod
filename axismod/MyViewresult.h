@@ -32,6 +32,7 @@ public:
 	void drawlim(CDC* pdc,transformaxis trans);
 
 
+	bool isinlim(int* x, int* y);
 };
 
 

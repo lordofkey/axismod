@@ -6,6 +6,7 @@
 #define IDP_OLE_INIT_FAILED             100
 #define IDD_MYFORM                      103
 #define IDD_MYSAVEDIALOG                104
+#define IDD_MYLOADDIALOG                105
 #define IDR_MAINFRAME                   128
 #define IDR_axismodTYPE                 129
 #define IDC_BUTTON1                     1000
@@ -40,6 +41,9 @@
 #define IDC_BUTTON9                     1032
 #define IDC_FILE                        1033
 #define IDC_BUTTON11                    1039
+#define IDC_BUTTON12                    1040
+#define IDC_LIST1                       1041
+#define IDC_LIST2                       1042
 #define ID_OPEN                         32772
 #define ID_32773                        32773
 
@@ -49,7 +53,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32774
-#define _APS_NEXT_CONTROL_VALUE         1040
-#define _APS_NEXT_SYMED_VALUE           105
+#define _APS_NEXT_CONTROL_VALUE         1043
+#define _APS_NEXT_SYMED_VALUE           106
 #endif
 #endif

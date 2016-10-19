@@ -61,14 +61,17 @@ void MyViewresult::OnDraw(CDC* pDC)
 	dcMem.MoveTo(trans.gettx(0),trans.getty(0));
 	dcMem.LineTo(trans.gettx(0),trans.getty(5540));
 
-  drawlim(&dcMem,trans);//超限框显示
-
+	drawlim(&dcMem,trans);//超限框显示
+	bool pic = false;
 
 #pragma region 雷达点绘图
 	if(Mymodfunc::GetInstance()->Getpiecenmod(layern,&x ,&y))
 	{
+		if(!isinlim(x,y))
+			pic = true;
 		for(int i = 0;i<180;i++)
 		{
+
 			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i]),RGB(255,0,0));
 #ifdef DRAWPOINTS  //如果定义DRAWPOINTS，则画一个大的点
 			dcMem.SetPixel(trans.gettx(x[i])+1,trans.getty(y[i]),RGB(255,0,0));
@@ -82,6 +85,8 @@ void MyViewresult::OnDraw(CDC* pDC)
 	}
 	if(Mymodfunc::GetInstance()->Getpiecenmodr(layern,&x ,&y))
 	{
+		if(!isinlim(x,y))
+			pic = true;
 		for(int i = 0;i<180;i++)
 		{
 			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i]),  RGB(0,0,255));
@@ -97,7 +102,15 @@ void MyViewresult::OnDraw(CDC* pDC)
 	}
 #pragma endregion 雷达点绘图
 
-
+	if(false)
+	{
+		CImage imgTemp;     
+        imgTemp.Attach(bmp.operator HBITMAP());
+		CString tem;
+		tem.Format("%d",this->layern);
+		tem += ".BMP";
+        imgTemp.Save(tem);
+	}
 	pDC->BitBlt(0,0,drect.Width(),drect.Height(),&dcMem,0,0,SRCCOPY);//将内存DC上的图象拷贝到前台
 	dcMem.DeleteDC();                                       //删除DC
 	bmp.DeleteObject();
@@ -150,7 +163,6 @@ void MyViewresult::drawlim(CDC* pdc, transformaxis trans)
 	CPen fpen4(PS_SOLID,1,COLOR4);
 	CPen fpen5(PS_SOLID,1,COLOR5);
 	CPen fpen6(PS_SOLID,1,COLOR6);
-
 	pdc->SelectObject(&fpen1);
 	pdc->MoveTo(trans.gettx(-m_trainlimit[0]),trans.getty(m_measuredheight[0]));
 	for(int i = 1;i<287;i++)
@@ -261,4 +273,33 @@ void MyViewresult::drawlim(CDC* pdc, transformaxis trans)
 			break;
 		}
 	}
+}
+
+
+bool MyViewresult::isinlim(int* x, int* y)
+{
+	for(int i = 0;i < 180;i++)
+	{
+		if((x[i]>-2440)&&(x[i] < 2440)&&(y[i] > 1250)&&(y[i] < 5550))
+		{
+			if(y[i]>4800)
+				return false;
+			else
+			{
+				int j = 0;
+				while(true)
+				{
+					if(y[i]<m_measuredheight[j])
+						break;
+					j++;
+				}
+				int xlim = m_trainlimit[j-1]+(m_trainlimit[j]-m_trainlimit[j-1])*(y[i]-m_measuredheight[j-1])/(m_measuredheight[j] - m_measuredheight[j-1]);
+				if((x[i]<-xlim)||(x[i]>xlim))
+				{
+					return false;
+				}
+			}
+		}
+	}
+	return true;
 }

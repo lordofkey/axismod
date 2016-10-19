@@ -8,6 +8,7 @@
 #include "limdata.h"
 #include "MySaveDialog.h"
 #include "MySetting.h"
+#include "MyLoadDialog.h"
 #include <Exception>
 #pragma comment(lib,"Winmm.lib")
 
@@ -73,6 +74,7 @@ BEGIN_MESSAGE_MAP(MyForm, CFormView)
 	ON_BN_CLICKED(IDC_BUTTON9, &MyForm::OnBnClickedButton9)
 	ON_MESSAGE(WM_MESSOUT, &MyForm::OnMessageOut)
 	ON_BN_CLICKED(IDC_BUTTON11, &MyForm::OnBnClickedButton11)
+	ON_BN_CLICKED(IDC_BUTTON12, &MyForm::OnBnClickedButton12)
 END_MESSAGE_MAP()
 
 
@@ -229,7 +231,6 @@ void MyForm::OnDestroy()
 void MyForm::OnBnClickedButton5()
 {
 	UpdateData(true);
-	//Mymodfunc::GetInstance()->seconmod(3000,4000);
 	Mymodfunc::GetInstance()->seconmod(carwidth,carhight,carst,caren);
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
@@ -423,4 +424,12 @@ void MyForm::OnBnClickedButton11()
 
 		set.writesetting(linename);
 	};
+}
+
+
+void MyForm::OnBnClickedButton12()
+{
+	MySetting set;
+	MyLoadDialog dig;
+	dig.DoModal();
 }

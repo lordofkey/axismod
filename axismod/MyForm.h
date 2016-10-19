@@ -76,4 +76,5 @@ public:
 
 	CEdit mesedit;
 	afx_msg void OnBnClickedButton11();
+	afx_msg void OnBnClickedButton12();
 };

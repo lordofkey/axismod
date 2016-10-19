@@ -18,7 +18,8 @@ public:
 	void precali(void);
 	bool writesetting(CString linename);
 
-	float calipar[3]; // 0-roadwidth, 1-radarheight, 2-road_radar_dis
+	float calipar[6]; // l 0-roadwidth, 1-radarheight, 2-road_radar_dis  r 0-roadwidth, 1-radarheight, 2-road_radar_dis
 	float rradar[6]; //0-delta_x, 1-delta_y, 2-delta_th, 3-score, 4-w1, 5-w2
 	float lradar[6]; //0-delta_x, 1-delta_y, 2-delta_th, 3-score, 4-w1, 5-w2
+	int ReadLine(CString& str_lines);
 };

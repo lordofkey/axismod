@@ -1,6 +1,12 @@
+//Date:2016-07-2
+//Author:杨浩
+//Description:此文件用于配置文件读写，遵从xml协议
+//            如有需求请按照说明进行修改
+
+
 #include "StdAfx.h"
 #include "MySetting.h"
-#define f2str(target) sprintf_s(buffer,100,"%f",target);
+#define f2str(target) sprintf_s(buffer,100,"%.2f",target);
 #define i2str(target) sprintf_s(buffer,100,"%d",target);
 
 MySetting::MySetting(void)
@@ -34,7 +40,7 @@ bool MySetting::initialdom(void)
 	VARIANT_BOOL bXmlLoad = pDoc->load((_variant_t)szXmlFile);
 	if (!bXmlLoad) // 加载失败
 	{
-		if(IDOK == ::MessageBox(NULL,"加载设置文档失败！点击确定重新重新初始化设置","警告",MB_OKCANCEL))
+		if(IDOK == ::MessageBox(NULL,"当前不存在标定结果文件，请确认是否创建结果文件?","警告",MB_OKCANCEL))
 		{
 			pProInstruction = pDoc->createProcessingInstruction((_bstr_t)(char*)"xml", (_bstr_t)(char*)"version=\"1.0\" encoding=\"utf-8\"");
 			pDoc->appendChild((MSXML2::IXMLDOMNode*)pProInstruction);
@@ -96,7 +102,8 @@ void MySetting::precali(void)
 bool MySetting::writesetting(CString linename)
 {
 	MSXML2::IXMLDOMElementPtr pPar = NULL, prradar = NULL, plradar = NULL,pcut = NULL,pcar = NULL;
-	this->initialdom();
+	if(!initialdom())
+		return false;
 	this->checkline(linename);
 	this->precali();
 	char buffer[100];
@@ -115,7 +122,7 @@ bool MySetting::writesetting(CString linename)
 	prradar->setAttribute((_bstr_t)"delta_x",buffer);
 	f2str(rradar[1])
 	prradar->setAttribute((_bstr_t)"delta_y",buffer);
-	f2str(rradar[2])
+	f2str(rradar[2]*57.2958)
 	prradar->setAttribute((_bstr_t)"delta_th",buffer);
 	f2str(rradar[3])
 	prradar->setAttribute((_bstr_t)"score",buffer);
@@ -130,7 +137,7 @@ bool MySetting::writesetting(CString linename)
 	plradar->setAttribute((_bstr_t)"delta_x",buffer);
 	f2str(lradar[1])
 	plradar->setAttribute((_bstr_t)"delta_y",buffer);
-	f2str(lradar[2])
+	f2str(lradar[2]*57.2958)
 	plradar->setAttribute((_bstr_t)"delta_th",buffer);
 	f2str(lradar[3])
 	plradar->setAttribute((_bstr_t)"score",buffer);
@@ -159,4 +166,21 @@ bool MySetting::writesetting(CString linename)
 
 	pDoc->save((_variant_t)szXmlFile);
 	return false;
+}
+
+
+int MySetting::ReadLine(CString& str_lines)
+{
+	initialdom();
+	MSXML2::IXMLDOMNodeListPtr pNodeList = NULL;
+	str_lines = "";
+	this->initialdom();
+	long length = 0;
+	pNodeList = pDoc->getElementsByTagName((_bstr_t)"Line");
+	pNodeList->get_length(&length);
+	for(int i = 0;i < length; i++)
+	{
+		str_lines += (char*)(pNodeList->Getitem(i)->Getattributes()->Getitem(0)->Gettext());
+	}
+	return 0;
 }
