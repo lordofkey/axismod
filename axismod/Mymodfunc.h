@@ -32,21 +32,21 @@ public:
 	// 读取点云文件
 	bool readfile(CString filename,CString path);
 	// 获取第n个断片的数据
-	bool Getpiecen(int n, int** x, int** y);
-	bool Getpiecenmod(int n, int** x, int** y);
-	bool Getpiecenmodr(int n, int** x, int** y);
+	bool Getpiecen(int n, int** x, int** y,int &numofp);
+	bool Getpiecenmod(int n, int** x, int** y,int &numofp);
+	bool Getpiecenmodr(int n, int** x, int** y,int &numofp);
 	bool Getpiecenmod2(int n, int** x, int** y);
 	bool Getpiecenmodr2(int n, int** x, int** y);
-	bool firstmod(float height, float width, float distan,int carst ,int caren);//// 第一次校正计算
-	bool seconmod(float width, float height,int carst ,int caren);// 二次校正
+	bool firstmod(int islr, float height, float width, float distan,int carst ,int caren);//// 第一次校正计算
+	bool seconmod(int islr, float width, float height,int carst ,int caren);// 二次校正
 	bool traincut();//自动切车
 
 
 	// 总层数
 	int totallayer;
-	short *lpdata;//雷达数据
-	float sint[360];//角度对应sin值
-	float cost[360];//角度对应cos值
+	int *lpdata;//雷达数据
+	float sint[1080];//角度对应sin值
+	float cost[1080];//角度对应cos值
 
 
 	float lroix_min,lroix_max,lroiy_min,lroiy_max,rroix_min,rroix_max,rroiy_min,rroiy_max;//轨道标定区域
@@ -54,10 +54,9 @@ public:
 
 
 	CString inifilename;
-
-
-	float sinm[360];//角度对应sin值
-	float cosm[360];//角度对应cos值
+	int pnum;//每层对应的点数
+	float sinm[1080];//角度对应sin值
+	float cosm[1080];//角度对应cos值
 	///一次校正输出
 	float ang_delta[2]; 
 	float x_delta[2];
@@ -67,7 +66,6 @@ public:
 	float w1[2];
 	float w2[2];
 	bool issecmod[2];//一次校正是否完成
-	int islr;//正在校正的雷达
 
 	int stps[200];//切车开始位置
 	int lens[200];//车长
@@ -78,4 +76,5 @@ public:
 	CString *pstr;//消息传递
 
 	CString version;
+	void updatahash(void);
 };

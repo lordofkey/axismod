@@ -63,13 +63,13 @@ void MyViewresult::OnDraw(CDC* pDC)
 
 	drawlim(&dcMem,trans);//超限框显示
 	bool pic = false;
-
+	int nump = 0;
 #pragma region 雷达点绘图
-	if(Mymodfunc::GetInstance()->Getpiecenmod(layern,&x ,&y))
+	if(Mymodfunc::GetInstance()->Getpiecenmod(layern,&x ,&y,nump))
 	{
 		if(!isinlim(x,y))
 			pic = true;
-		for(int i = 0;i<180;i++)
+		for(int i = 0;i<nump;i++)
 		{
 
 			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i]),RGB(255,0,0));
@@ -83,11 +83,11 @@ void MyViewresult::OnDraw(CDC* pDC)
 		delete x;
 		delete y;
 	}
-	if(Mymodfunc::GetInstance()->Getpiecenmodr(layern,&x ,&y))
+	if(Mymodfunc::GetInstance()->Getpiecenmodr(layern,&x ,&y,nump))
 	{
 		if(!isinlim(x,y))
 			pic = true;
-		for(int i = 0;i<180;i++)
+		for(int i = 0;i<nump;i++)
 		{
 			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i]),  RGB(0,0,255));
 #ifdef DRAWPOINTS  //如果定义DRAWPOINTS，则画一个大的点

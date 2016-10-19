@@ -110,11 +110,11 @@ bool MySetting::writesetting(CString linename)
 
 
 	pPar = pDoc->createElement((_bstr_t)"cali_par");
-	f2str(calipar[0])
+	f2str(calipar[3])
 	pPar->setAttribute((_bstr_t)"roadwidth",buffer);
-	f2str(calipar[1])
+	f2str(calipar[4])
 	pPar->setAttribute((_bstr_t)"radarheight",buffer);
-	f2str(calipar[2])
+	f2str(calipar[5])
 	pPar->setAttribute((_bstr_t)"road_radar_dis",buffer);
 
 	prradar = pDoc->createElement("right_radar");
@@ -130,7 +130,15 @@ bool MySetting::writesetting(CString linename)
 	prradar->setAttribute((_bstr_t)"w1",buffer);
 	f2str(rradar[5])
 	prradar->setAttribute((_bstr_t)"w2",buffer);
+	prradar->appendChild(pPar);
 
+	pPar = pDoc->createElement((_bstr_t)"cali_par");
+	f2str(calipar[0])
+	pPar->setAttribute((_bstr_t)"roadwidth",buffer);
+	f2str(calipar[1])
+	pPar->setAttribute((_bstr_t)"radarheight",buffer);
+	f2str(calipar[2])
+	pPar->setAttribute((_bstr_t)"road_radar_dis",buffer);
 
 	plradar = pDoc->createElement("left_radar");
 	f2str(lradar[0])
@@ -145,10 +153,11 @@ bool MySetting::writesetting(CString linename)
 	plradar->setAttribute((_bstr_t)"w1",buffer);
 	f2str(lradar[5])
 	plradar->setAttribute((_bstr_t)"w2",buffer);
+	plradar->appendChild(pPar);
+
 	pcut = pDoc->createElement("cut");
 	i2str(Mymodfunc::GetInstance()->cc);
 	pcut->setAttribute((_bstr_t)"number",buffer);
-	pcalitimeElement->appendChild(pPar);
 	pcalitimeElement->appendChild(prradar);
 	pcalitimeElement->appendChild(plradar);
 	pcalitimeElement->appendChild(pcut);
@@ -169,18 +178,65 @@ bool MySetting::writesetting(CString linename)
 }
 
 
-int MySetting::ReadLine(CString& str_lines)
+int MySetting::ReadLine(std::vector<CString> &str_lines)
 {
 	initialdom();
 	MSXML2::IXMLDOMNodeListPtr pNodeList = NULL;
-	str_lines = "";
+
 	this->initialdom();
 	long length = 0;
 	pNodeList = pDoc->getElementsByTagName((_bstr_t)"Line");
 	pNodeList->get_length(&length);
 	for(int i = 0;i < length; i++)
 	{
-		str_lines += (char*)(pNodeList->Getitem(i)->Getattributes()->Getitem(0)->Gettext());
+		str_lines.push_back((char*)(pNodeList->Getitem(i)->Getattributes()->Getitem(0)->Gettext()));
 	}
 	return 0;
 }
+
+
+
+void MySetting::Loadsetting(CString linename,CString time,std::vector<CString>& parstr)
+{
+	this->initialdom();
+	this->checkline(linename);
+	MSXML2::IXMLDOMNodeListPtr pNodeList = NULL;
+	MSXML2::IXMLDOMElementPtr pElement = NULL;
+	long length;
+	pNodeList = plineElement->getElementsByTagName((_bstr_t)"caltime");
+	pNodeList->get_length(&length);
+	for(int i = 0;i < length; i++)
+	{
+		CString tem = pNodeList->Getitem(i)->Getattributes()->getNamedItem((_bstr_t)"time")->Gettext();
+		if(0 == strcmp(tem,time))
+		{
+			pElement = pNodeList->Getitem(i);
+			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"left_radar")->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_x")->Gettext()));
+			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"left_radar")->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_y")->Gettext()));
+			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"left_radar")->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_th")->Gettext()));
+			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"right_radar") ->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_x")->Gettext()));
+			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"right_radar") ->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_y")->Gettext()));
+			parstr.push_back((char*)(pElement->getElementsByTagName((_bstr_t)"right_radar") ->Getitem(0)->Getattributes()->getNamedItem((_bstr_t)"delta_th")->Gettext()));
+			break;
+		}																							 
+	}
+}
+
+
+int MySetting::getsettings(CString linename, std::vector<CString>& sets)
+{
+	long length;
+	MSXML2::IXMLDOMNodeListPtr pNodeList = NULL;
+
+	this->initialdom();
+	this->checkline(linename);
+	pNodeList = plineElement->getElementsByTagName((_bstr_t)"caltime");
+	pNodeList->get_length(&length);
+	for(int i = 0;i < length; i++)
+	{
+		CString tem = pNodeList->Getitem(i)->Getattributes()->getNamedItem((_bstr_t)"time")->Gettext();
+		sets.push_back(tem);
+	}
+	return 0;
+}
+

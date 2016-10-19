@@ -80,9 +80,10 @@ void MyView::OnDraw(CDC* pDC)
 	dcMem.SelectObject(&pbrush);
 	dcMem.SelectStockObject(NULL_PEN);
 	dcMem.Ellipse(trans.gettx(0)-5,trans.getty(0)-5,trans.gettx(0)+5,trans.getty(0)+5);
-	if(Mymodfunc::GetInstance()->Getpiecen(layern,&x ,&y))
+	int num_p = 0;
+	if(Mymodfunc::GetInstance()->Getpiecen(layern,&x ,&y,num_p))
 	{
-		for(int i = (isrl-1) * 180;i<180 * isrl;i++)
+		for(int i = (isrl-1) * num_p;i<num_p * isrl;i++)
 		{
 			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i]),RGB(0,0,0));
 			dcMem.SetPixel(trans.gettx(x[i])+1,trans.getty(y[i]),RGB(0,0,0));

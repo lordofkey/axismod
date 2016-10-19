@@ -29,6 +29,7 @@ timer0(NULL)
 , trainid(0)
 , e_filename(_T(""))
 , logtext(_T(""))
+, islr(0)
 {
 	memset(trains,0,sizeof(trains));
 }
@@ -189,7 +190,10 @@ void MyForm::OnBnClickedButton4()
 {
 	this->UpdateData();
 	//Mymodfunc::GetInstance()->firstmod(6649,2000,3320.5);
-	if(Mymodfunc::GetInstance()->firstmod(this->roadhight,this->roadwid,this->roaddis,carst,caren))
+	set.calipar[islr*3+0] = roadwid;
+	set.calipar[islr*3+1] = roadhight;
+	set.calipar[islr*3+2] = roaddis;
+	if(Mymodfunc::GetInstance()->firstmod(this->islr,this->roadhight,this->roadwid,this->roaddis,carst,caren))
 	{
 		::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 		::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
@@ -231,7 +235,7 @@ void MyForm::OnDestroy()
 void MyForm::OnBnClickedButton5()
 {
 	UpdateData(true);
-	Mymodfunc::GetInstance()->seconmod(carwidth,carhight,carst,caren);
+	Mymodfunc::GetInstance()->seconmod(islr,carwidth,carhight,carst,caren);
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
 }
@@ -253,7 +257,7 @@ void MyForm::OnBnClickedButton7()
 void MyForm::OnBnClickedRadio1()
 {
 	this->UpdateData(true);
-	Mymodfunc::GetInstance()->islr = this->ruidalr;
+	islr = 0;
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),1);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
 }
@@ -261,7 +265,7 @@ void MyForm::OnBnClickedRadio1()
 void MyForm::OnBnClickedRadio2()
 {
 	this->UpdateData(true);
-	Mymodfunc::GetInstance()->islr = this->ruidalr;
+	islr = 1;
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),2);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
 }
@@ -403,11 +407,7 @@ void MyForm::OnBnClickedButton11()
 	if(IDOK == temDialog.DoModal())
 	{
 		CString linename = temDialog.linetext;
-		MySetting set;
 		this->UpdateData(true);
-		set.calipar[0] = roadwid;
-		set.calipar[1] = roadhight;
-		set.calipar[2] = roaddis;
 		set.lradar[0] = Mymodfunc::GetInstance()->x_delta[0];
 		set.lradar[1] = Mymodfunc::GetInstance()->y_delta[0];
 		set.lradar[2] = Mymodfunc::GetInstance()->ang_delta[0];
@@ -421,7 +421,6 @@ void MyForm::OnBnClickedButton11()
 		set.rradar[3] = 0 ;
 		set.rradar[4] = Mymodfunc::GetInstance()->w1[1];
 		set.rradar[5] = Mymodfunc::GetInstance()->w2[1];
-
 		set.writesetting(linename);
 	};
 }
@@ -429,7 +428,12 @@ void MyForm::OnBnClickedButton11()
 
 void MyForm::OnBnClickedButton12()
 {
-	MySetting set;
+	std::vector<CString> lines;
+	set.ReadLine(lines);
 	MyLoadDialog dig;
-	dig.DoModal();
+	dig.pset = &set;
+	dig.str_lines = lines;
+	if(IDOK == dig.DoModal())
+		::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
+
 }

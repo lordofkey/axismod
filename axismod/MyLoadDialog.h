@@ -1,5 +1,6 @@
 #pragma once
-
+#include "afxwin.h"
+#include "MySetting.h"
 
 // MyLoadDialog 对话框
 
@@ -16,9 +17,16 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
-
 	DECLARE_MESSAGE_MAP()
+
 public:
 	virtual BOOL OnInitDialog();
-	CString str_lines;
+
+
+	CListBox Blinelist;
+	virtual void OnOK();
+	afx_msg void OnLbnSelchangeList1();
+	CListBox Bsetlist;
+	std::vector<CString> str_lines;
+	MySetting* pset;
 };

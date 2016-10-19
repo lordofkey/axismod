@@ -1,6 +1,7 @@
 #pragma once
 #include "afxcmn.h"
 #include "afxwin.h"
+#include "mysetting.h"
 
 
 
@@ -77,4 +78,6 @@ public:
 	CEdit mesedit;
 	afx_msg void OnBnClickedButton11();
 	afx_msg void OnBnClickedButton12();
+	int islr;
+	MySetting set;
 };
