@@ -2,7 +2,6 @@
 //Author:杨浩
 //Description:此文件用于直角坐标系与屏幕坐标系相互转换，勿动
 //            若修改此文件，请重新编译所有引用此文件的CPP文件
-#pragma once
 class transformaxis
 {
 private:
@@ -26,6 +25,18 @@ public:
 		return ((float)y-by)/ay;
 	}
 //原始坐标-》屏幕坐标
+	int gettx(int x, int y, int z)
+	{
+		float tmx = ax*(float)x+bx;
+		float tmy = ay*(float)y+by;
+		return tmx*0.5+1.5*z+ax*2000;
+	}
+	int getty(int x, int y, int z)
+	{
+		float tmx = ax*(float)x+bx;
+		float tmy = ay*(float)y+by;
+		return tmy*0.5-z*1.5-1600*ay;
+	}
 	int gettx(int x)
 	{
 		return (int)(ax*(float)x+bx);

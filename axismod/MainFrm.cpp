@@ -7,7 +7,6 @@
 #include "MyView.h"
 #include "MainFrm.h"
 #include "MyViewresult.h"
-#include "MyViewresult3d.h"
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -41,7 +40,6 @@ CMainFrame::CMainFrame()
 
 CMainFrame::~CMainFrame()
 {
-		Mymodfunc::GetInstance()->release();
 }
 
 
@@ -115,14 +113,14 @@ BOOL CMainFrame::OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext)
 	CSize siz_View;
 	siz_Control.cx = tem_ClientRect.Width();
 	siz_Control.cy = 220;
-	siz_View.cx = tem_ClientRect.Width()/3;
+	siz_View.cx = tem_ClientRect.Width()/2;
 	siz_View.cy = tem_ClientRect.Height()-siz_Control.cy;
 	splittery.CreateStatic(this,2,1);
-	splitterx.CreateStatic(&splittery,1,3,WS_CHILD|WS_VISIBLE,splittery.IdFromRowCol(0,0));
+	splitterx.CreateStatic(&splittery,1,2,WS_CHILD|WS_VISIBLE,splittery.IdFromRowCol(0,0));
 	splittery.CreateView(1,0,RUNTIME_CLASS(MyForm),SIZE()/*siz_Control*/,pContext);
 	splitterx.CreateView(0,0,RUNTIME_CLASS(MyView),SIZE()/*siz_View*/,pContext);
 	splitterx.CreateView(0,1,RUNTIME_CLASS(MyViewresult),SIZE()/*siz_View*/,pContext);
-	splitterx.CreateView(0,2,RUNTIME_CLASS(MyViewresult3d),SIZE()/*siz_View*/,pContext);
+
 	return CFrameWnd::OnCreateClient(lpcs, pContext);
 }
 void CMainFrame::OnSize(UINT nType, int cx, int cy)
@@ -134,7 +132,7 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
 	CSize siz_View;
 	siz_Control.cx = tem_ClientRect.Width();
 	siz_Control.cy = 250;
-	siz_View.cx = tem_ClientRect.Width()/3;
+	siz_View.cx = tem_ClientRect.Width()/2;
 	siz_View.cy = tem_ClientRect.Height()-siz_Control.cy;
 
 	if(siz_View.cy<=0)
@@ -142,6 +140,6 @@ void CMainFrame::OnSize(UINT nType, int cx, int cy)
 	splittery.SetRowInfo(0,siz_View.cy ,0 );
 	splittery.SetRowInfo(1,250,0);
 	splitterx.SetColumnInfo(0,siz_View.cx,0);
-	splitterx.SetColumnInfo(1,siz_View.cx,0);
+	splitterx.SetColumnInfo(0,siz_View.cx,0);
 	CFrameWnd::OnSize(nType, cx, cy);
 }

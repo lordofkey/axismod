@@ -3,17 +3,56 @@
 #define pi 3.141592653f
 #define SEND(str) pstr = new CString(#str);\
 	::PostMessage(this->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
-
+extern "C"
+{
+	_declspec(dllimport) double framdet(double dx, double dy);
+}
+class maxn
+{
+public:
+	int *nums;
+	int n;
+	maxn(int n = 20)
+	{
+		this->n = n;
+		nums = new int[n];
+		for(int i = 0; i < n; i++)
+		{
+			nums[i] = 0;
+		}
+	}
+	void append(int num)
+	{
+		for(int i = 0; i < n; i++)
+		{
+			if(num > nums[i])
+			{
+				nums[i] = num;
+				break;
+			}
+		}
+	}
+	//void getmax()
+	//{
+	//	for(int i = 0; i < n; i++)
+	//	{
+	//		if(num > nums[i])
+	//		{
+	//			nums[i] = num;
+	//			break;
+	//		}
+	//	}
+	//}
+};
 
 Mymodfunc* Mymodfunc::m_pInstance = NULL;//单例对象指针
 
 Mymodfunc::Mymodfunc(void)
 	: totallayer(0)
 {
-	memset(lxbuffer, 0, sizeof(void*)*50000);
-	memset(lybuffer, 0, sizeof(void*)*50000);
-	memset(rxbuffer, 0, sizeof(void*)*50000);
-	memset(rybuffer, 0, sizeof(void*)*50000);
+
+
+
 	isfirmod[0] = false;
 	isfirmod[1] = false;
 	issecmod[0] = false;
@@ -28,7 +67,6 @@ void Mymodfunc::release()
 Mymodfunc::~Mymodfunc(void)
 {
 	delete lpdata;
-	cleanbuffer();
 	lpdata = NULL;
 }
 Mymodfunc *Mymodfunc::GetInstance()
@@ -100,7 +138,7 @@ bool Mymodfunc::readfile(CString filename,int& layers)
 			isfirmod[1] = false;
 			issecmod[0] = false;
 			issecmod[1] = false;
-			this->cleanbuffer();
+
 			pstr = new CString();
 			pstr->Format("读取切片数：%d",totallayer);
 			::PostMessage(this->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
@@ -202,10 +240,6 @@ bool Mymodfunc::readfile(CString filename,int& layers)
 		isfirmod[1] = false;
 		issecmod[0] = false;
 		issecmod[1] = false;
-
-		this->cleanbuffer();
-
-
 		pstr = new CString();
 		pstr->Format("读取切片数：%d",totallayer);
 		::PostMessage(this->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
@@ -248,21 +282,16 @@ bool Mymodfunc::Getpiecen(int n, int** x, int** y,int &numofp)
 
 bool Mymodfunc::Getpiecenmodl(int n, int** x, int** y,int &numofp)
 {
-	
+
 	if((lpdata != NULL)&&isfirmod[0])
 	{
-		if(lxbuffer[n] == NULL||lybuffer[n] == NULL)
+		*x = new int[pnum];
+		*y = new int[pnum];
+		for(int i = 0; i<pnum; i++) //初始化极坐标转换序列
 		{
-			lxbuffer[n] = new int[pnum];
-			lybuffer[n] = new int[pnum];
-			for(int i = 0; i<pnum; i++) //初始化极坐标转换序列
-			{
-				lxbuffer[n][i] = (int)(l_cosm[i]*lpdata[pnum*2*n + i] - set.pLeft.delta_x);
-				lybuffer[n][i] = (int)(l_sinm[i]*lpdata[pnum*2*n + i] + set.pLeft.delta_y);
-			}
+			(*x)[i] = (int)(l_cosm[i]*lpdata[pnum*2*n + i] - set.pLeft.delta_x);
+			(*y)[i] = (int)(l_sinm[i]*lpdata[pnum*2*n + i] + set.pLeft.delta_y);
 		}
-		*x = lxbuffer[n];
-		*y = lybuffer[n];
 		numofp = pnum;
 		return true;
 	}
@@ -271,29 +300,22 @@ bool Mymodfunc::Getpiecenmodl(int n, int** x, int** y,int &numofp)
 
 bool Mymodfunc::Getpiecenmodr(int n, int** x, int** y,int &numofp)
 {
-	static int yy = 0;
 
 	if((lpdata != NULL)&&isfirmod[1])
 	{
-		if(rxbuffer[n] == NULL||rybuffer[n] == NULL)
+		*x = new int[pnum];
+		*y = new int[pnum];
+		for(int i = 0; i<pnum; i++) //初始化极坐标转换序列
 		{
-			rxbuffer[n] = new int[pnum];
-			rybuffer[n] = new int[pnum];
-			for(int i = 0; i<pnum; i++) //初始化极坐标转换序列
-			{
-				rxbuffer[n][i] = (int)(r_cosm[i]*lpdata[pnum*(2*n+1) + i] + set.pRight.delta_x);
-				rybuffer[n][i] = (int)(r_sinm[i]*lpdata[pnum*(2*n+1)  + i] + set.pRight.delta_y);
-			}
+			(*x)[i] = (int)(r_cosm[i]*lpdata[pnum*(2*n+1) + i] + set.pRight.delta_x);
+			(*y)[i] = (int)(r_sinm[i]*lpdata[pnum*(2*n+1)  + i] + set.pRight.delta_y);
 		}
-		*x = rxbuffer[n];
-		*y = rybuffer[n];
-
-
 		numofp = pnum;
 		return true;
 	}
 	return false;
 }
+
 //bool Mymodfunc::Getpiecenmodl2(int n, int** x, int** y)
 //{
 //	*x = new int[180];
@@ -345,6 +367,8 @@ bool Mymodfunc::Getpiecenmodr(int n, int** x, int** y,int &numofp)
 //	delete *y;
 //	return false;
 //}
+
+
 #pragma endregion 数据输出
 //第一次校正计算
 //输入：雷达实际高度height  铁路宽width  雷达到铁路的水平距离distan 左右轨道标定范围lroix lroiy rroix rroiy
@@ -523,33 +547,36 @@ bool Mymodfunc::seconmod(int islr, float width, float height,int carst,int caren
 //自动切车
 bool Mymodfunc::traincut()
 {
-	int *x = new int[1000];
-	int	*y = new int[1000];
-	int *tmpx;
-	int *tmpy;
-	if(isfirmod[0]&&isfirmod[1])
+	int np = 0;
+	double sumd = 0;
+	int postn = 0;
+	int cc = 0;
+	if(isfirmod[0])
 	{
-		int cc = 0;
-		int postn = 0;
-		int num;
 		for(int n = 0;n < totallayer;n++)
 		{
-			Getpiecenmodl(n,&tmpx,&tmpy,num);
-			memcpy(x,tmpx,num*sizeof(int));
-			memcpy(y,tmpy,num*sizeof(int));
-			Getpiecenmodr(n,&tmpx,&tmpy,num);
-			memcpy(x+num,tmpx,num*sizeof(int));
-			memcpy(y+num,tmpy,num*sizeof(int));
-			if(kmean(x,y,2*num, n - postn))
+			np = 0;
+			sumd = 0;
+			for(int i = 0;i<pnum;i++)
 			{
-				if((n - postn)>50)
+				int x = (int)(l_cosm[i]*lpdata[pnum*2*n + i] - set.pLeft.delta_x);
+				int y = (int)(l_sinm[i]*lpdata[pnum*2*n + i] + set.pLeft.delta_y);
+				if((x>-2040)&&(x<2040)&&(y>500)&&(y<5550))
+				{
+					np++;
+					sumd = sumd + sqrt((float)(y-800)*(y-800) + x*x);
+				}
+			}
+			double ed = sumd/np;
+			if((np > 5)&&(ed<350))
+			{
+				if((n - postn)>100)
 				{
 					set.cpar.stpoint[cc] = postn;
 					set.cpar.length[cc] = n - postn;
 					cc++;
-					postn = n;
 				}
-				
+				postn = n;
 			}
 		}
 		set.cpar.num = cc;
@@ -560,7 +587,6 @@ bool Mymodfunc::traincut()
 	}
 	return false;
 }
-
 void Mymodfunc::updatahash(void)
 {
 	for(int i = 0;i<pnum;i++)       //初始化极坐标转换序列
@@ -575,10 +601,9 @@ void Mymodfunc::updatahash(void)
 		r_sinm[i] = sin(th);
 		r_cosm[i] = cos(th);
 	}
-	this->cleanbuffer();
 }
 // 检查一次校正参数
-bool Mymodfunc::checkModPar(ModPar par)
+bool Mymodfunc::checkModPar(ModPar  par)
 {
 	if((par.height <= 0)||(par.width <= 0)||(par.distan <= 0)||(lpdata == NULL))
 		return false;
@@ -593,6 +618,7 @@ bool Mymodfunc::checkModPar(ModPar par)
 	else
 		return true;
 }
+
 
 MyPoint Mymodfunc::findrail(MyRect range, ModPar par)
 {
@@ -652,6 +678,7 @@ MyPoint Mymodfunc::findrail(MyRect range, ModPar par)
 	return pt;
 }
 
+
 bool Mymodfunc::setleftrange(float x_s, float y_s, float x_e, float y_e)
 {
 	l_range.st.x = x_s<x_e?x_s:x_e;
@@ -669,6 +696,7 @@ bool Mymodfunc::setrightrange(float x_s, float y_s, float x_e, float y_e)
 	r_range.en.y = y_s>y_e?y_s:y_e;
 	return true;
 }
+
 
 // 检查输入文件扩展名
 int Mymodfunc::checkext(CString FileName)
@@ -694,6 +722,7 @@ int Mymodfunc::checkext(CString FileName)
 		return 0;
 }
 
+
 bool Mymodfunc::checklim(void)
 {
 	if(!isfirmod[0])
@@ -708,13 +737,9 @@ bool Mymodfunc::checklim(void)
 	}
 	int x,y;
 	bool isout = false;
-	int t = 0;
 	for(int n = 0;n < this->totallayer;n++)
 	{
-
 		isout = false;
-		if(t>0)
-			t--;
 		for(int i = 0;i<pnum;i++)
 		{
 			x =  (int)(l_cosm[i]*lpdata[2*pnum*n + i] - set.pLeft.delta_x);
@@ -725,6 +750,14 @@ bool Mymodfunc::checklim(void)
 					isout = true;
 			}
 		}
+		if(isout)
+		{
+			::PostMessageA(this->h_viewm, WM_REFRESH, (WPARAM)n, 1);
+		}
+	}
+	for(int n = 0;n < this->totallayer;n++)
+	{
+		isout = false;
 		for(int i = 0;i<pnum;i++)
 		{
 			x =  (int)(r_cosm[i]*lpdata[pnum*(2*n+1) + i] + set.pRight.delta_x);
@@ -735,39 +768,10 @@ bool Mymodfunc::checklim(void)
 					isout = true;
 			}
 		}
-		if(isout&t == 0)
+		if(isout)
 		{
 			::PostMessageA(this->h_viewm, WM_REFRESH, (WPARAM)n, 1);
-			::PostMessageA(this->h_viewm3d, WM_REFRESH, (WPARAM)n, 1);
-			t = 50;
 		}
 	}
 	return true;
-}
-
-void Mymodfunc::cleanbuffer(void)
-{
-	for(int i = 0; i < 50000; i++)
-	{
-		if(lxbuffer[i] != NULL)
-		{
-			delete lxbuffer[i];
-			lxbuffer[i] = NULL;
-		}
-		if(lybuffer[i] != NULL)
-		{
-			delete lybuffer[i];
-			lybuffer[i] = NULL;
-		}
-		if(rxbuffer[i] != NULL)
-		{
-			delete rxbuffer[i];
-			rxbuffer[i] = NULL;
-		}
-		if(rybuffer[i] != NULL)
-		{
-			delete rybuffer[i];
-			rybuffer[i] = NULL;
-		}
-	}
 }

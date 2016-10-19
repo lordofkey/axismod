@@ -5,22 +5,17 @@
 #include "axismod.h"
 #include "MyViewresult.h"
 #include "atlimage.h"
-#define DRAWPOINTS
-#define COLOR1 RGB(255,0,0)
-#define COLOR2 RGB(0,255,255)
-#define COLOR3 RGB(0,0,255)
-#define COLOR4 RGB(255,255,0)
-#define COLOR5 RGB(255,0,0)
-#define COLOR6 RGB(0,255,0)
+extern "C"
+{
+	_declspec(dllimport) double framdet(double dx, double dy);
+}
 // MyViewresult
 
 IMPLEMENT_DYNCREATE(MyViewresult, CView)
 
 MyViewresult::MyViewresult()
-: saveimg(false)
+: issave(false)
 {
-	Lisdown = false;
-	iswritedata = false;
 }
 
 MyViewresult::~MyViewresult()
@@ -30,10 +25,6 @@ MyViewresult::~MyViewresult()
 BEGIN_MESSAGE_MAP(MyViewresult, CView)
 	ON_MESSAGE(WM_REFRESH,&MyViewresult::OnRefresh)
 	ON_WM_ERASEBKGND()
-	ON_WM_MOUSEMOVE()
-	ON_WM_LBUTTONDOWN()
-	ON_WM_LBUTTONUP()
-//	ON_WM_PAINT()
 END_MESSAGE_MAP()
 
 
@@ -41,19 +32,12 @@ END_MESSAGE_MAP()
 
 void MyViewresult::OnDraw(CDC* pDC)
 {
+
 	int *x = NULL;   //需要显示的x坐标指针
 	int *y = NULL;   //需要显示的y坐标指针
 	CRect drect;
 	this->GetClientRect(&drect);
-	transformaxis trans(drect,-3000,3000,-1000,6000);			    //设定显示范围
-
-
-#pragma region 输出点数据
-
-
-#pragma endregion 输出点数据
-
-
+	transformaxis trans(drect,-4000,4000,-1000,6000);			    //设定显示范围
 
 #pragma region 双缓冲initial
 	CDC dcMem;														//用于缓冲作图的内存DC
@@ -64,99 +48,82 @@ void MyViewresult::OnDraw(CDC* pDC)
 	dcMem.FillSolidRect(drect,RGB(125,125,125));//按原来背景填充客户区，不然会是黑色
 #pragma endregion 双缓冲initial
 
-
-	CPen ppen(1,2,RGB(0,255,0));
-	dcMem.SelectObject(&ppen);
-
-	dcMem.MoveTo(trans.gettx(-2440),trans.getty(0));
-	dcMem.LineTo(trans.gettx(2440),trans.getty(0));
-	dcMem.MoveTo(trans.gettx(0),trans.getty(0));
-	dcMem.LineTo(trans.gettx(0),trans.getty(5540));
-
-
-	drawlim(&dcMem,trans);//超限框显示
-	dcMem.SelectObject((HGDIOBJ)GetStockObject(NULL_BRUSH));
-	dcMem.Rectangle(Lstpoint.x,Lstpoint.y,Lenpoint.x,Lenpoint.y);
-
 	int nump = 0;
+	int curlayn = 0;
+	int tx[100000];
+	int ty[100000];
+	int tnum = 0;
 #pragma region 雷达点绘图
-	CString *pstr;
-	if(Mymodfunc::GetInstance()->Getpiecenmodl(layern,&x ,&y,nump))
+	for(int z = -100; z<100; z++)
 	{
-		if(iswritedata)
+		curlayn = layern + z;
+		if(curlayn >0&&curlayn<Mymodfunc::GetInstance()->totallayer)
 		{
-			pstr = new CString();
-			pstr->Format("左雷达：");
-			::PostMessage(Mymodfunc::GetInstance()->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
-			for(int i = 0;i<nump; i++)
+			if(Mymodfunc::GetInstance()->Getpiecenmodl(curlayn,&x ,&y,nump))
 			{
-
-				if((x[i] > trans.getox(Lstpoint.x))&&(x[i] < trans.getox(Lenpoint.x))&&(y[i] < trans.getoy(Lstpoint.y))&&(y[i] > trans.getoy(Lenpoint.y)))
+				for(int i = 0;i<nump;i++)
 				{
-					pstr = new CString();
-					pstr->Format("x坐标：%d， y坐标：%d", x[i], y[i]);
-					::PostMessage(Mymodfunc::GetInstance()->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
+					if((x[i] > -2100)&&(x[i] < 2100)&&(y[i] > 1250)&&(y[i] < 5550))
+					{
+						if(framdet(x[i], y[i])==0.0)
+						{
+							dcMem.SetPixel(trans.gettx(x[i], y[i], z),trans.getty(x[i], y[i], z),RGB(255,255,255));
+						}
+						else
+						{
+							tx[tnum] = trans.gettx(x[i], y[i], z);
+							ty[tnum] = trans.getty(x[i], y[i], z);
+							tnum++;
+						}
+					}
 				}
+				delete x;
+				delete y;
+			}
+			if(Mymodfunc::GetInstance()->Getpiecenmodr(curlayn,&x ,&y,nump))
+			{
+				for(int i = 0;i<nump;i++)
+				{
+					if((x[i] > -2100)&&(x[i] < 2100)&&(y[i] > 1250)&&(y[i] < 5550))
+					{
+						if(framdet(x[i], y[i])==0.0)
+						{
+							dcMem.SetPixel(trans.gettx(x[i], y[i], z),trans.getty(x[i], y[i], z),  RGB(255,255,255));
+						}
+						else
+						{
+							tx[tnum] = trans.gettx(x[i], y[i], z);
+							ty[tnum] = trans.getty(x[i], y[i], z);
+							tnum ++;
+
+						}
+					}
+				}
+
+				delete x;
+				delete y;
 			}
 		}
-
-
-
-		for(int i = 0;i<nump;i++)
-		{
-
-			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i]),RGB(255,0,0));
-#ifdef DRAWPOINTS  //如果定义DRAWPOINTS，则画一个大的点
-			dcMem.SetPixel(trans.gettx(x[i])+1,trans.getty(y[i]),RGB(255,0,0));
-			dcMem.SetPixel(trans.gettx(x[i])-1,trans.getty(y[i]),RGB(255,0,0));
-			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i])+1,RGB(255,0,0));
-			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i])-1,RGB(255,0,0));
-#endif
-		}
 	}
-	if(Mymodfunc::GetInstance()->Getpiecenmodr(layern,&x ,&y,nump))
+	for(int i = 0; i < tnum; i++)
 	{
-		if(iswritedata)
-		{
-			pstr = new CString();
-			pstr->Format("右雷达：");
-			::PostMessage(Mymodfunc::GetInstance()->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
-			for(int i = 0;i<nump; i++)
-			{
-				if((x[i] > trans.getox(Lstpoint.x))&&(x[i] < trans.getox(Lenpoint.x))&&(y[i] < trans.getoy(Lstpoint.y))&&(y[i] > trans.getoy(Lenpoint.y)))
-				{
-					pstr = new CString();
-					pstr->Format("x坐标：%d， y坐标：%d", x[i], y[i]);
-					::PostMessage(Mymodfunc::GetInstance()->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
-				}
-			}
-		}
-
-
-		for(int i = 0;i<nump;i++)
-		{
-			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i]),  RGB(0,0,255));
-#ifdef DRAWPOINTS  //如果定义DRAWPOINTS，则画一个大的点
-			dcMem.SetPixel(trans.gettx(x[i])+1,trans.getty(y[i]),  RGB(0,0,255));
-			dcMem.SetPixel(trans.gettx(x[i])-1,trans.getty(y[i]),  RGB(0,0,255));
-			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i])+1,  RGB(0,0,255));
-			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i])-1,  RGB(0,0,255));
-#endif
-		}
+		dcMem.SetPixel(tx[i],ty[i],RGB(255,0,0));
+		dcMem.SetPixel(tx[i]+1,ty[i],RGB(255,0,0));
+		dcMem.SetPixel(tx[i]-1,ty[i],RGB(255,0,0));
+		dcMem.SetPixel(tx[i],ty[i]+1,RGB(255,0,0));
+		dcMem.SetPixel(tx[i],ty[i]-1,RGB(255,0,0));
 	}
-
-	this->iswritedata = false;
 #pragma endregion 雷达点绘图
 
-	if(this->saveimg)
+	if(issave)
 	{
 		CImage imgTemp;     
         imgTemp.Attach(bmp.operator HBITMAP());
 		CString tem;
-		tem.Format("%.5d",this->layern);
+		tem.Format("%d",this->layern);
 		tem += ".BMP";
         imgTemp.Save(tem);
-		this->saveimg = false;
+		issave = false;
 	}
 	pDC->BitBlt(0,0,drect.Width(),drect.Height(),&dcMem,0,0,SRCCOPY);//将内存DC上的图象拷贝到前台
 	dcMem.DeleteDC();                                       //删除DC
@@ -186,8 +153,8 @@ LRESULT MyViewresult::OnRefresh(WPARAM wParam, LPARAM lParam)
 	layern = wParam;
 	if(lParam!=NULL)
 	{
-		saveimg = true;
 		this->OnDraw(this->GetDC());
+		issave = true;
 		return 0;
 	}
 	this->Invalidate();
@@ -206,168 +173,3 @@ BOOL MyViewresult::OnEraseBkgnd(CDC* pDC)
 	return true;
 //	return CView::OnEraseBkgnd(pDC);
 }
-
-void MyViewresult::drawlim(CDC* pdc, transformaxis trans)
-{
-
-	CPen fpen1(PS_SOLID,1,COLOR1);
-	CPen fpen2(PS_SOLID,1,COLOR2);
-	CPen fpen3(PS_SOLID,1,COLOR3);
-	CPen fpen4(PS_SOLID,1,COLOR4);
-	CPen fpen5(PS_SOLID,1,COLOR5);
-	CPen fpen6(PS_SOLID,1,COLOR6);
-	pdc->SelectObject(&fpen1);
-	pdc->MoveTo(trans.gettx(-m_trainlimit[0]),trans.getty(m_measuredheight[0]));
-	for(int i = 1;i<287;i++)
-	{
-		if(m_trainlimit[i] != 0)
-			pdc->LineTo(trans.gettx(-m_trainlimit[i]),trans.getty(m_measuredheight[i]));
-		else
-		{
-			pdc->LineTo(trans.gettx(m_trainlimit[i-1]),trans.getty(m_measuredheight[i-1]));
-			break;
-		}
-		if(i == 286)
-		{
-			pdc->LineTo(trans.gettx(m_trainlimit[i]),trans.getty(m_measuredheight[i]));
-		}
-	}
-	pdc->MoveTo(trans.gettx(m_trainlimit[0]),trans.getty(m_measuredheight[0]));
-	for(int i = 1;i<287;i++)
-	{
-		if(m_trainlimit[i] != 0)
-			pdc->LineTo(trans.gettx(m_trainlimit[i]),trans.getty(m_measuredheight[i]));
-		else
-		{
-			break;
-		}
-	}
-
-
-	pdc->SelectObject(&fpen2);
-	pdc->MoveTo(trans.gettx(-m_firstlimit[35]),trans.getty(m_measuredheight[35]));
-	for(int i = 35;i<287;i++)
-	{
-		if(m_firstlimit[i] != 0)
-			pdc->LineTo(trans.gettx(-m_firstlimit[i]),trans.getty(m_measuredheight[i]));
-		else
-		{
-			pdc->LineTo(trans.gettx(m_firstlimit[i-1]),trans.getty(m_measuredheight[i-1]));
-			break;
-		}
-		if(i == 286)
-		{
-			pdc->LineTo(trans.gettx(m_firstlimit[i]),trans.getty(m_measuredheight[i]));
-		}
-	}
-	pdc->MoveTo(trans.gettx(m_firstlimit[35]),trans.getty(m_measuredheight[35]));
-	for(int i = 35;i<287;i++)
-	{
-		if(m_firstlimit[i] != 0)
-			pdc->LineTo(trans.gettx(m_firstlimit[i]),trans.getty(m_measuredheight[i]));
-		else
-		{
-			break;
-		}
-	}
-
-
-	pdc->SelectObject(&fpen3);
-	pdc->MoveTo(trans.gettx(-m_secondlimit[0]),trans.getty(m_measuredheight[0]));
-	for(int i = 1;i<287;i++)
-	{
-		if(m_secondlimit[i] != 0)
-			pdc->LineTo(trans.gettx(-m_secondlimit[i]),trans.getty(m_measuredheight[i]));
-		else
-		{
-			pdc->LineTo(trans.gettx(m_secondlimit[i-1]),trans.getty(m_measuredheight[i-1]));
-			break;
-		}
-		if(i == 286)
-		{
-			pdc->LineTo(trans.gettx(m_secondlimit[i]),trans.getty(m_measuredheight[i]));
-		}
-	}
-	pdc->MoveTo(trans.gettx(m_secondlimit[0]),trans.getty(m_measuredheight[0]));
-	for(int i = 1;i<287;i++)
-	{
-		if(m_secondlimit[i] != 0)
-			pdc->LineTo(trans.gettx(m_secondlimit[i]),trans.getty(m_measuredheight[i]));
-		else
-		{
-			break;
-		}
-	}
-
-
-	pdc->SelectObject(&fpen4);
-	pdc->MoveTo(trans.gettx(-m_buildinglimit[0]),trans.getty(m_measuredheight[0]));
-	for(int i = 1;i<287;i++)
-	{
-		if(m_buildinglimit[i] != 0)
-			pdc->LineTo(trans.gettx(-m_buildinglimit[i]),trans.getty(m_measuredheight[i]));
-		else
-		{
-			pdc->LineTo(trans.gettx(m_buildinglimit[i-1]),trans.getty(m_measuredheight[i-1]));
-			break;
-		}
-		if(i == 286)
-		{
-			pdc->LineTo(trans.gettx(m_buildinglimit[i]),trans.getty(m_measuredheight[i]));
-		}
-	}
-	pdc->MoveTo(trans.gettx(m_buildinglimit[0]),trans.getty(m_measuredheight[0]));
-	for(int i = 1;i<287;i++)
-	{
-		if(m_buildinglimit[i] != 0)
-			pdc->LineTo(trans.gettx(m_buildinglimit[i]),trans.getty(m_measuredheight[i]));
-		else
-		{
-			break;
-		}
-	}
-}
-
-
-
-void MyViewresult::OnMouseMove(UINT nFlags, CPoint point)
-{
-	//// TODO: 在此添加消息处理程序代码和/或调用默认值
-	//CRect drect;
-	//this->GetClientRect(&drect);
-	//transformaxis trans(drect,-4000,4000,-1000,6000);			    //设定显示范围
-	//float x = trans.getox(point.x);
-	//float y = trans.getoy(point.y);
-	//char *xs = new char[100];
-	//char *ys = new char[100];
-	//sprintf(xs, "%.4f", x);
-	//sprintf(ys, "%.4f", y);
-	//::PostMessageA(Mymodfunc::GetInstance()->h_form, SETXY, (WPARAM)xs, (LPARAM)ys);
-	if(Lisdown == true)
-	{
-		Lenpoint = point;
-		this->Invalidate();
-	}
-	CView::OnMouseMove(nFlags, point);
-
-
-}
-void MyViewresult::OnLButtonDown(UINT nFlags, CPoint point)
-{
-	Lstpoint = point;
-	Lisdown = true;
-	CView::OnLButtonDown(nFlags, point);
-}
-void MyViewresult::OnLButtonUp(UINT nFlags, CPoint point)
-{
-	if(Lisdown == true)
-	{
-		Lisdown = false;
-		Lenpoint = point;
-		iswritedata = true;
-		this->Invalidate();
-
-	}
-	CView::OnLButtonUp(nFlags, point);
-}
-

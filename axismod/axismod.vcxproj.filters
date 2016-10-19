@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-    <Filter Include="shaders">
-      <UniqueIdentifier>{6998ffa6-3c2b-4fa1-83ee-43df888ed930}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="axismod.cpp">
@@ -46,9 +43,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="MyLoadDialog.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="MyViewresult3d.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -95,9 +89,6 @@
     <ClInclude Include="MyLoadDialog.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="MyViewresult3d.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\axismod.ico">
@@ -110,16 +101,15 @@
       <Filter>资源文件</Filter>
     </None>
     <None Include="ReadMe.txt" />
-    <None Include="SimpleFragmentShader.fragmentshader">
-      <Filter>shaders</Filter>
-    </None>
-    <None Include="SimpleVertexShader.vertexshader">
-      <Filter>shaders</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="axismod.rc">
       <Filter>资源文件</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="scandll.lib">
+      <Filter>资源文件</Filter>
+    </Library>
   </ItemGroup>
 </Project>

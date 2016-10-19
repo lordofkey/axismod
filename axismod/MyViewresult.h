@@ -29,19 +29,7 @@ public:
 	int layern;// 第n层的雷达点云数据
 	virtual void OnInitialUpdate();
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
-	void drawlim(CDC* pdc,transformaxis trans);
-	void OnLButtonDown(UINT nFlags, CPoint point);
-	void OnLButtonUp(UINT nFlags, CPoint point);
-	bool isinlim(int* x, int* y);
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-
-	CPoint Lstpoint;// KUANG
-	CPoint Lenpoint;// KUANG
-	bool Lisdown;// KUANG
-	bool iswritedata;
-
-	bool saveimg;
-//	afx_msg void OnPaint();
+	bool issave;
 };
 
 

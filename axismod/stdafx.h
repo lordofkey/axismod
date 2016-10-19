@@ -3,6 +3,8 @@
 // 特定于项目的包含文件
 
 #pragma once
+
+
 #ifndef _SECURE_ATL
 #define _SECURE_ATL 1
 #endif
@@ -37,10 +39,6 @@
 
 #include "Mymodfunc.h"
 
-#include "../kmean/kmean.h"
-#include "../scandll/scan.h"
-#pragma comment(lib,"..\\debug\\kmean.lib")
-#pragma comment(lib,"..\\debug\\scandll.lib")
 
 #define WM_REFRESH WM_USER+1
 #define WM_MESSOUT WM_USER+2

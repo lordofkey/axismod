@@ -28,7 +28,6 @@ public:
 public:
 	afx_msg void OnAppAbout();
 	DECLARE_MESSAGE_MAP()
-	virtual int ExitInstance();
 };
 
 extern CaxismodApp theApp;

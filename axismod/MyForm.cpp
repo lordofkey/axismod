@@ -124,7 +124,7 @@ void MyForm::OnBnClickedButton1()//button 导入雷达数据
 
 		::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,0,NULL);
 		::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,0,NULL);
-		::SendMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,0,NULL);
+
 		layerslider.SetRange(0,layers-1);
 		layerslider.SetPageSize(10);
 	}
@@ -136,7 +136,6 @@ void MyForm::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	layernedit.SetWindowTextA(tembuf);
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
-	::SendMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 	CFormView::OnHScroll(nSBCode, nPos, pScrollBar);
 }
 void CALLBACK onTimeFunc(UINT wTimerID, UINT msg,DWORD dwUser,DWORD dwl,DWORD dw2)
@@ -148,7 +147,6 @@ void CALLBACK onTimeFunc(UINT wTimerID, UINT msg,DWORD dwUser,DWORD dwl,DWORD dw
 	pform->layernedit.SetWindowTextA(tembuf);
 	::PostMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,pform->layerslider.GetPos(),NULL);
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,pform->layerslider.GetPos(),NULL);
-	::PostMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,pform->layerslider.GetPos(),NULL);
 }
 //播放
 void MyForm::OnBnClickedButton2()
@@ -157,7 +155,7 @@ void MyForm::OnBnClickedButton2()
 	//	this->SetTimer(1,100,0);
 	if(timer0 == NULL)
 	{
-		timer0 = timeSetEvent(17,1,onTimeFunc,(DWORD_PTR)this,TIME_PERIODIC);
+		timer0 = timeSetEvent(40,1,onTimeFunc,(DWORD_PTR)this,TIME_PERIODIC);
 	}
 }
 void MyForm::OnTimer(UINT_PTR nIDEvent)
@@ -168,7 +166,6 @@ void MyForm::OnTimer(UINT_PTR nIDEvent)
 	layernedit.SetWindowTextA(tembuf);
 	::PostMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
-	::PostMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 	CFormView::OnTimer(nIDEvent);
 }
 //停止播放
@@ -199,7 +196,6 @@ void MyForm::OnBnClickedButton4()
 	{
 		::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 		::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
-		::SendMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 	}
 	else
 		MessageBox("参数不合法！请检查后重新校正！");
@@ -239,7 +235,6 @@ void MyForm::OnBnClickedRadio1()
 	islr = 0;
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),1);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
-	::SendMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 }
 void MyForm::OnBnClickedRadio2()
 {
@@ -247,7 +242,6 @@ void MyForm::OnBnClickedRadio2()
 	islr = 1;
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),2);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
-	::SendMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 }
 void MyForm::OnInitialUpdate()
 {
@@ -272,7 +266,6 @@ void MyForm::OnBnClickedButton8()
 	layernedit.SetWindowTextA(tembuf);
 	::PostMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
-	::PostMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 	this->par_refresh();
 }
 void MyForm::OnBnClickedButton10()
@@ -293,7 +286,6 @@ void MyForm::OnBnClickedButton10()
 	layernedit.SetWindowTextA(tembuf);
 	::PostMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
-	::PostMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 	this->par_refresh();
 }
 ///打开车辆信息
@@ -397,10 +389,7 @@ void MyForm::OnBnClickedButton12()
 	MyLoadDialog dig;
 	dig.str_lines = lines;
 	if(IDOK == dig.DoModal())
-	{
 		::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
-		::PostMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
-	}
 
 }
 

@@ -55,7 +55,7 @@ void MyView::OnDraw(CDC* pDC)
 	CRect drect;
 	this->GetClientRect(&drect);
 
-	transformaxis trans(drect,-8000,8000,-10000,1000);
+	transformaxis trans(drect,-10000,10000,-10000,1000);
 	CDC dcMem;                                   //用于缓冲作图的内存DC
 	CBitmap bmp;                                 //内存中承载临时图象的位图
 	dcMem.CreateCompatibleDC(pDC);               //依附窗口DC创建兼容内存DC

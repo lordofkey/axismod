@@ -130,11 +130,3 @@ void CaxismodApp::OnAppAbout()
 
 // CaxismodApp 消息处理程序
 
-
-
-int CaxismodApp::ExitInstance()
-{
-	// TODO: 在此添加专用代码和/或调用基类
-
-	return CWinApp::ExitInstance();
-}
