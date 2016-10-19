@@ -544,10 +544,15 @@ bool Mymodfunc::traincut()
 			{
 				if((n - postn)>50)
 				{
-					set.cpar.stpoint[cc] = postn;
-					set.cpar.length[cc] = n - postn;
-					cc++;
-					postn = n;
+					if(postn == 0)
+						postn = n;
+					else
+					{
+						set.cpar.stpoint[cc] = postn;
+						set.cpar.length[cc] = n - postn;
+						cc++;
+						postn = n;
+					}
 				}
 				
 			}
@@ -556,6 +561,27 @@ bool Mymodfunc::traincut()
 		pstr = new CString();
 		pstr->Format("ÇÐ³µ½ÚÊý£º%.2d",cc);
 		::PostMessage(this->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
+		for(int i = 0; i < cc; i++)
+		{
+			char filename[100];
+			sprintf(filename, "%.3d.3dp",i);
+			FILE *pf = fopen(filename,"wb");
+			fwrite(&(set.cpar.length[i]),sizeof(int),1,pf);
+			fwrite(&num,sizeof(int),1,pf);
+			for(int j = 0; j < set.cpar.length[i]; j++)
+			{
+				int layn = j+set.cpar.stpoint[i];
+				Getpiecenmodl(layn,&tmpx,&tmpy,num);
+				memcpy(x,tmpx,num*sizeof(int));
+				memcpy(y,tmpy,num*sizeof(int));
+				Getpiecenmodr(layn,&tmpx,&tmpy,num);
+				memcpy(x+num,tmpx,num*sizeof(int));
+				memcpy(y+num,tmpy,num*sizeof(int));
+				fwrite(x,sizeof(int),num*2,pf);
+				fwrite(y,sizeof(int),num*2,pf);
+			}
+			fclose(pf);
+		}
 		return true;
 	}
 	return false;
