@@ -17,8 +17,10 @@
 IMPLEMENT_DYNCREATE(MyViewresult, CView)
 
 MyViewresult::MyViewresult()
+: saveimg(false)
 {
-
+	Lisdown = false;
+	iswritedata = false;
 }
 
 MyViewresult::~MyViewresult()
@@ -28,6 +30,10 @@ MyViewresult::~MyViewresult()
 BEGIN_MESSAGE_MAP(MyViewresult, CView)
 	ON_MESSAGE(WM_REFRESH,&MyViewresult::OnRefresh)
 	ON_WM_ERASEBKGND()
+	ON_WM_MOUSEMOVE()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
+//	ON_WM_PAINT()
 END_MESSAGE_MAP()
 
 
@@ -35,12 +41,18 @@ END_MESSAGE_MAP()
 
 void MyViewresult::OnDraw(CDC* pDC)
 {
-
 	int *x = NULL;   //需要显示的x坐标指针
 	int *y = NULL;   //需要显示的y坐标指针
 	CRect drect;
 	this->GetClientRect(&drect);
-	transformaxis trans(drect,-4000,4000,-1000,6000);			    //设定显示范围
+	transformaxis trans(drect,-3000,3000,-1000,6000);			    //设定显示范围
+
+
+#pragma region 输出点数据
+
+
+#pragma endregion 输出点数据
+
 
 
 #pragma region 双缓冲initial
@@ -61,14 +73,35 @@ void MyViewresult::OnDraw(CDC* pDC)
 	dcMem.MoveTo(trans.gettx(0),trans.getty(0));
 	dcMem.LineTo(trans.gettx(0),trans.getty(5540));
 
+
 	drawlim(&dcMem,trans);//超限框显示
-	bool pic = false;
+	dcMem.SelectObject((HGDIOBJ)GetStockObject(NULL_BRUSH));
+	dcMem.Rectangle(Lstpoint.x,Lstpoint.y,Lenpoint.x,Lenpoint.y);
+
 	int nump = 0;
 #pragma region 雷达点绘图
+	CString *pstr;
 	if(Mymodfunc::GetInstance()->Getpiecenmodl(layern,&x ,&y,nump))
 	{
-		if(!isinlim(x,y))
-			pic = true;
+		if(iswritedata)
+		{
+			pstr = new CString();
+			pstr->Format("左雷达：");
+			::PostMessage(Mymodfunc::GetInstance()->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
+			for(int i = 0;i<nump; i++)
+			{
+
+				if((x[i] > trans.getox(Lstpoint.x))&&(x[i] < trans.getox(Lenpoint.x))&&(y[i] < trans.getoy(Lstpoint.y))&&(y[i] > trans.getoy(Lenpoint.y)))
+				{
+					pstr = new CString();
+					pstr->Format("x坐标：%d， y坐标：%d", x[i], y[i]);
+					::PostMessage(Mymodfunc::GetInstance()->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
+				}
+			}
+		}
+
+
+
 		for(int i = 0;i<nump;i++)
 		{
 
@@ -80,13 +113,26 @@ void MyViewresult::OnDraw(CDC* pDC)
 			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i])-1,RGB(255,0,0));
 #endif
 		}
-		delete x;
-		delete y;
 	}
 	if(Mymodfunc::GetInstance()->Getpiecenmodr(layern,&x ,&y,nump))
 	{
-		if(!isinlim(x,y))
-			pic = true;
+		if(iswritedata)
+		{
+			pstr = new CString();
+			pstr->Format("右雷达：");
+			::PostMessage(Mymodfunc::GetInstance()->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
+			for(int i = 0;i<nump; i++)
+			{
+				if((x[i] > trans.getox(Lstpoint.x))&&(x[i] < trans.getox(Lenpoint.x))&&(y[i] < trans.getoy(Lstpoint.y))&&(y[i] > trans.getoy(Lenpoint.y)))
+				{
+					pstr = new CString();
+					pstr->Format("x坐标：%d， y坐标：%d", x[i], y[i]);
+					::PostMessage(Mymodfunc::GetInstance()->h_form,WM_MESSOUT,(WPARAM)pstr,NULL);
+				}
+			}
+		}
+
+
 		for(int i = 0;i<nump;i++)
 		{
 			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i]),  RGB(0,0,255));
@@ -97,19 +143,20 @@ void MyViewresult::OnDraw(CDC* pDC)
 			dcMem.SetPixel(trans.gettx(x[i]),trans.getty(y[i])-1,  RGB(0,0,255));
 #endif
 		}
-		delete x;
-		delete y;
 	}
+
+	this->iswritedata = false;
 #pragma endregion 雷达点绘图
 
-	if(false)
+	if(this->saveimg)
 	{
 		CImage imgTemp;     
         imgTemp.Attach(bmp.operator HBITMAP());
 		CString tem;
-		tem.Format("%d",this->layern);
+		tem.Format("%.5d",this->layern);
 		tem += ".BMP";
         imgTemp.Save(tem);
+		this->saveimg = false;
 	}
 	pDC->BitBlt(0,0,drect.Width(),drect.Height(),&dcMem,0,0,SRCCOPY);//将内存DC上的图象拷贝到前台
 	dcMem.DeleteDC();                                       //删除DC
@@ -137,6 +184,12 @@ void MyViewresult::Dump(CDumpContext& dc) const
 LRESULT MyViewresult::OnRefresh(WPARAM wParam, LPARAM lParam)  
 {
 	layern = wParam;
+	if(lParam!=NULL)
+	{
+		saveimg = true;
+		this->OnDraw(this->GetDC());
+		return 0;
+	}
 	this->Invalidate();
 	return 0;
 }
@@ -276,30 +329,45 @@ void MyViewresult::drawlim(CDC* pdc, transformaxis trans)
 }
 
 
-bool MyViewresult::isinlim(int* x, int* y)
+
+void MyViewresult::OnMouseMove(UINT nFlags, CPoint point)
 {
-	for(int i = 0;i < 180;i++)
+	//// TODO: 在此添加消息处理程序代码和/或调用默认值
+	//CRect drect;
+	//this->GetClientRect(&drect);
+	//transformaxis trans(drect,-4000,4000,-1000,6000);			    //设定显示范围
+	//float x = trans.getox(point.x);
+	//float y = trans.getoy(point.y);
+	//char *xs = new char[100];
+	//char *ys = new char[100];
+	//sprintf(xs, "%.4f", x);
+	//sprintf(ys, "%.4f", y);
+	//::PostMessageA(Mymodfunc::GetInstance()->h_form, SETXY, (WPARAM)xs, (LPARAM)ys);
+	if(Lisdown == true)
 	{
-		if((x[i]>-2440)&&(x[i] < 2440)&&(y[i] > 1250)&&(y[i] < 5550))
-		{
-			if(y[i]>4800)
-				return false;
-			else
-			{
-				int j = 0;
-				while(true)
-				{
-					if(y[i]<m_measuredheight[j])
-						break;
-					j++;
-				}
-				int xlim = m_trainlimit[j-1]+(m_trainlimit[j]-m_trainlimit[j-1])*(y[i]-m_measuredheight[j-1])/(m_measuredheight[j] - m_measuredheight[j-1]);
-				if((x[i]<-xlim)||(x[i]>xlim))
-				{
-					return false;
-				}
-			}
-		}
+		Lenpoint = point;
+		this->Invalidate();
 	}
-	return true;
+	CView::OnMouseMove(nFlags, point);
+
+
 }
+void MyViewresult::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	Lstpoint = point;
+	Lisdown = true;
+	CView::OnLButtonDown(nFlags, point);
+}
+void MyViewresult::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	if(Lisdown == true)
+	{
+		Lisdown = false;
+		Lenpoint = point;
+		iswritedata = true;
+		this->Invalidate();
+
+	}
+	CView::OnLButtonUp(nFlags, point);
+}
+

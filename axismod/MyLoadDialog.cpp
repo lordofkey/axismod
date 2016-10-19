@@ -93,3 +93,4 @@ void MyLoadDialog::OnLbnSelchangeList1()
 		Bsetlist.AddString(sets[i]);
 	// TODO: 在此添加控件通知处理程序代码
 }
+

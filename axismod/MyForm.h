@@ -79,4 +79,11 @@ public:
 	afx_msg void OnBnClickedButton12();
 	int islr;
 	afx_msg void OnBnClickedButton13();
+	afx_msg void OnBnClickedButton14();
+protected:
+	afx_msg LRESULT OnSetxy(WPARAM wParam, LPARAM lParam);
+public:
+	CEdit editx;
+	CEdit edity;
+	afx_msg void OnBnClickedButton15();
 };

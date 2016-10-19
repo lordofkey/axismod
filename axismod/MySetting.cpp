@@ -120,7 +120,8 @@ bool MySetting::checkcal(CString caltime)
 	for(int i = 0;i < length; i++)
 	{
 		pcalitimeElement = pNodeList->Getitem(i);
-		if(0 == strcmp((CString)(pcalitimeElement->getAttribute((_bstr_t)"time")),caltime))
+		CString d = (CString)(pcalitimeElement->getAttribute((_bstr_t)"time"));
+		if(caltime == d)
 			break;
 	}
 	if(pcalitimeElement == NULL)
@@ -183,7 +184,7 @@ bool MySetting::update(bool isout)//isout == true 时，保存到文件。 isout = false
 	if(isout)
 	{
 		CTime now = CTime::GetCurrentTime();
-		pcalitimeElement->setAttribute((_bstr_t)"time",now.Format("%Y-%m-%d %H:%M:%S: ").GetBuffer());
+		pcalitimeElement->setAttribute((_bstr_t)"time",now.Format("%Y-%m-%d %H:%M:%S").GetBuffer());
 		pcalitimeElement->setAttribute((_bstr_t)"version",version.GetBuffer());
 		pcalitimeElement->setAttribute((_bstr_t)"source",fSource.GetBuffer());
 

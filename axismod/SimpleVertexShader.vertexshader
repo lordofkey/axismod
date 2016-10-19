@@ -1,0 +1,26 @@
+#version 330 core
+
+layout(location = 0) in vec4 vertexPosition_modelspace;
+uniform mat4 MVP;
+out vec4 fragmentColor;
+void main(){
+    gl_Position = MVP*vec4(vertexPosition_modelspace.xyz,1);
+	if(vertexPosition_modelspace[3] == 0.0)
+	{
+		fragmentColor = vec4(1.0,1.0,1.0,0.5);
+		gl_PointSize = 1;
+	}
+	else if(vertexPosition_modelspace[3] == 99.231)
+	{
+		fragmentColor = vec4(1.0,0.0,1,0.5);
+		gl_PointSize = 1;
+	}
+	else
+	{
+		fragmentColor = vec4(1.0,0.0,0.0,1.0);
+		gl_PointSize = 3;
+	}
+	
+}
+
+//vertexPosition_modelspace.w/10

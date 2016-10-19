@@ -2,6 +2,7 @@
 //Author:杨浩
 //Description:此文件用于直角坐标系与屏幕坐标系相互转换，勿动
 //            若修改此文件，请重新编译所有引用此文件的CPP文件
+#pragma once
 class transformaxis
 {
 private:

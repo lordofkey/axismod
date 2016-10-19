@@ -49,6 +49,8 @@ void MyForm::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_FILE, e_filename);
 	DDX_Text(pDX, IDC_EDIT9, logtext);
 	DDX_Control(pDX, IDC_EDIT9, mesedit);
+	DDX_Control(pDX, IDC_EDIT11, editx);
+	DDX_Control(pDX, IDC_EDIT12, edity);
 }
 BEGIN_MESSAGE_MAP(MyForm, CFormView)
 	ON_BN_CLICKED(IDC_BUTTON1, &MyForm::OnBnClickedButton1)
@@ -70,6 +72,9 @@ BEGIN_MESSAGE_MAP(MyForm, CFormView)
 	ON_BN_CLICKED(IDC_BUTTON11, &MyForm::OnBnClickedButton11)
 	ON_BN_CLICKED(IDC_BUTTON12, &MyForm::OnBnClickedButton12)
 	ON_BN_CLICKED(IDC_BUTTON13, &MyForm::OnBnClickedButton13)
+	ON_BN_CLICKED(IDC_BUTTON14, &MyForm::OnBnClickedButton14)
+	ON_MESSAGE(SETXY, &MyForm::OnSetxy)
+	ON_BN_CLICKED(IDC_BUTTON15, &MyForm::OnBnClickedButton15)
 END_MESSAGE_MAP()
 
 
@@ -119,7 +124,7 @@ void MyForm::OnBnClickedButton1()//button 导入雷达数据
 
 		::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,0,NULL);
 		::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,0,NULL);
-
+		::SendMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,0,NULL);
 		layerslider.SetRange(0,layers-1);
 		layerslider.SetPageSize(10);
 	}
@@ -131,6 +136,7 @@ void MyForm::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 	layernedit.SetWindowTextA(tembuf);
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
+	::SendMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 	CFormView::OnHScroll(nSBCode, nPos, pScrollBar);
 }
 void CALLBACK onTimeFunc(UINT wTimerID, UINT msg,DWORD dwUser,DWORD dwl,DWORD dw2)
@@ -142,6 +148,7 @@ void CALLBACK onTimeFunc(UINT wTimerID, UINT msg,DWORD dwUser,DWORD dwl,DWORD dw
 	pform->layernedit.SetWindowTextA(tembuf);
 	::PostMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,pform->layerslider.GetPos(),NULL);
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,pform->layerslider.GetPos(),NULL);
+	::PostMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,pform->layerslider.GetPos(),NULL);
 }
 //播放
 void MyForm::OnBnClickedButton2()
@@ -150,7 +157,7 @@ void MyForm::OnBnClickedButton2()
 	//	this->SetTimer(1,100,0);
 	if(timer0 == NULL)
 	{
-		timer0 = timeSetEvent(40,1,onTimeFunc,(DWORD_PTR)this,TIME_PERIODIC);
+		timer0 = timeSetEvent(17,1,onTimeFunc,(DWORD_PTR)this,TIME_PERIODIC);
 	}
 }
 void MyForm::OnTimer(UINT_PTR nIDEvent)
@@ -161,6 +168,7 @@ void MyForm::OnTimer(UINT_PTR nIDEvent)
 	layernedit.SetWindowTextA(tembuf);
 	::PostMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
+	::PostMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 	CFormView::OnTimer(nIDEvent);
 }
 //停止播放
@@ -191,6 +199,7 @@ void MyForm::OnBnClickedButton4()
 	{
 		::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 		::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
+		::SendMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 	}
 	else
 		MessageBox("参数不合法！请检查后重新校正！");
@@ -230,6 +239,7 @@ void MyForm::OnBnClickedRadio1()
 	islr = 0;
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),1);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
+	::SendMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 }
 void MyForm::OnBnClickedRadio2()
 {
@@ -237,6 +247,7 @@ void MyForm::OnBnClickedRadio2()
 	islr = 1;
 	::SendMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),2);
 	::SendMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
+	::SendMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 }
 void MyForm::OnInitialUpdate()
 {
@@ -261,6 +272,7 @@ void MyForm::OnBnClickedButton8()
 	layernedit.SetWindowTextA(tembuf);
 	::PostMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
+	::PostMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 	this->par_refresh();
 }
 void MyForm::OnBnClickedButton10()
@@ -281,6 +293,7 @@ void MyForm::OnBnClickedButton10()
 	layernedit.SetWindowTextA(tembuf);
 	::PostMessageA(Mymodfunc::GetInstance()->h_view,WM_REFRESH,layerslider.GetPos(),NULL);
 	::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
+	::PostMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
 	this->par_refresh();
 }
 ///打开车辆信息
@@ -310,14 +323,14 @@ void MyForm::OnBnClickedButton9()
 				if(temstr.size()<8)
 					continue;
 				trains[num_train].id = atoi(temstr[7]);
-
+				int pos1 = 0;
+				CString tmpstr = temstr[5].Tokenize(" ", pos1);
 				for(int i = 0;i<(310-146);i++)
 				{
-					int pos1 = 0;
-					if(temstr[5].Tokenize(" ",pos1) == traintype[i].type)
+					if(tmpstr == traintype[i].type)
 					{
-						trains[num_train].height = traintype[i].height;
-						trains[num_train].width = traintype[i].width;
+						trains[num_train].height = traintype[i].width;
+						trains[num_train].width = traintype[i].height;
 						break;
 					}
 					trains[num_train].height = 0;
@@ -384,11 +397,41 @@ void MyForm::OnBnClickedButton12()
 	MyLoadDialog dig;
 	dig.str_lines = lines;
 	if(IDOK == dig.DoModal())
+	{
 		::PostMessageA(Mymodfunc::GetInstance()->h_viewm,WM_REFRESH,layerslider.GetPos(),NULL);
+		::PostMessageA(Mymodfunc::GetInstance()->h_viewm3d,WM_REFRESH,layerslider.GetPos(),NULL);
+	}
 
 }
 
 void MyForm::OnBnClickedButton13()
 {
 	Mymodfunc::GetInstance()->traincut();
+}
+
+
+void MyForm::OnBnClickedButton14()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	for(int i = 0; i < 60; i++)
+	{
+		OnBnClickedButton10();
+		OnBnClickedButton5();
+	}
+}
+
+
+afx_msg LRESULT MyForm::OnSetxy(WPARAM wParam, LPARAM lParam)
+{
+	editx.SetWindowTextA((char*)wParam);
+	edity.SetWindowTextA((char*)lParam);
+	return 0;
+}
+
+
+void MyForm::OnBnClickedButton15()
+{
+	if(!Mymodfunc::GetInstance()->checklim())
+		MessageBox("请先进行一次标定");
+	// TODO: 在此添加控件通知处理程序代码
 }

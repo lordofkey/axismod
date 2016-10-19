@@ -110,6 +110,10 @@ private:
 	int pnum;//每层对应的点数
 	MyRect l_range;
 	MyRect r_range;
+	int *lxbuffer[50000];
+	int *lybuffer[50000];
+	int *rxbuffer[50000];
+	int *rybuffer[50000];
 	//校正前
 	float l_sint[540]; //角度对应sin值
 	float l_cost[540]; //角度对应cos值
@@ -142,6 +146,7 @@ public:
 
 	HWND h_view;//视图窗口句柄
 	HWND h_viewm; //校正后的视图句柄
+	HWND h_viewm3d; //校正后的视图句柄
 	HWND h_form;//控制面板句柄
 
 
@@ -160,4 +165,7 @@ public:
 	// 检查输入文件扩展名
 
 	int checkext(CString filename);
+	bool checklim(void);
+private:
+	void cleanbuffer(void);
 };
